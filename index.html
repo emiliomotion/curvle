@@ -849,6 +849,38 @@
       </div>
     </div>
 
+    <!-- ═══ ADMIN ═══ -->
+    <div id="screen-admin" class="screen">
+      <div class="panel panel--narrow">
+        <div class="row" style="justify-content:space-between;align-items:center;">
+          <div style="font-size:20px;font-weight:700;letter-spacing:-0.04em;color:var(--cream);">Admin</div>
+          <button class="btn" onclick="showScreen('intro')">← Back</button>
+        </div>
+        <div class="card" style="font-size:13px;color:var(--txt2);line-height:1.8;">
+          Delete a score from the leaderboard by entering the exact name and date.
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div class="label">Player name (exact)</div>
+            <input type="text" id="admin-name" placeholder="e.g. Emilio" maxlength="24" />
+          </div>
+          <div>
+            <div class="label">Date (YYYY-MM-DD, leave blank for all dates)</div>
+            <input type="text" id="admin-date" placeholder="e.g. 2026-04-08" maxlength="10" />
+          </div>
+          <button class="btn"
+            style="background:rgba(240,112,112,0.15);border-color:rgba(240,112,112,0.3);color:#f07070;"
+            onclick="adminDelete()">Delete score</button>
+          <div id="admin-msg" style="font-size:12px;min-height:18px;"></div>
+        </div>
+        <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+          <div class="label">Current scores</div>
+          <div id="admin-lb-list" style="font-size:12px;"></div>
+          <button class="btn" style="font-size:11px;" onclick="loadAdminScores()">Refresh</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -858,6 +890,30 @@
     const SUPABASE_URL = 'https://yrqtzjvwforyowqyqlru.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlycXR6anZ3Zm9yeW93cXlxbHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NjA2MzEsImV4cCI6MjA5MTIzNjYzMX0.MwfPtCNa-r1tcb5FMLZ847Fo7pve-_4Law4DmKpx4ng';
     const SITE_URL = 'curvle.io';
+
+    // ── Admin delete password (change this to something only you know) ──
+    const ADMIN_PASSWORD = 'curvle-admin-2026';
+
+    // ── Profanity blocklist ──────────────────────────────────────────────
+    // Add any words you want to block. Checked case-insensitively.
+    const BLOCKED_WORDS = [
+      'fuck', 'shit', 'ass', 'bitch', 'cunt', 'dick', 'cock', 'pussy', 'nigger', 'nigga',
+      'faggot', 'fag', 'whore', 'slut', 'bastard', 'piss', 'twat', 'wank', 'bollocks',
+      'asshole', 'arsehole', 'motherfucker', 'retard', 'tranny', 'nazi', 'hitler',
+      'rape', 'rapist', 'pedophile', 'pedo', 'kike', 'chink', 'spic', 'wetback',
+    ];
+
+    function sanitizeName(raw) {
+      // Strip non-printable chars and trim
+      let name = raw.replace(/[^ -~]/g, '').trim().slice(0, 24);
+      if (!name) return 'Anonymous';
+      // Check blocklist (whole word and substring match)
+      const lower = name.toLowerCase();
+      for (const word of BLOCKED_WORDS) {
+        if (lower.includes(word)) return null; // null = blocked
+      }
+      return name;
+    }
 
     // ════════════════════════════════════════════════════════
     //  CURVE POOL
@@ -1330,7 +1386,19 @@
     //  GAME FLOW
     // ════════════════════════════════════════════════════════
     function startGame() {
-      const name = document.getElementById('name-input').value.trim() || 'Anonymous';
+      const raw = document.getElementById('name-input').value.trim();
+      const name = sanitizeName(raw);
+      if (name === null) {
+        const input = document.getElementById('name-input');
+        input.style.borderColor = 'var(--red, #f07070)';
+        input.placeholder = 'That name isn\'t allowed — try another';
+        input.value = '';
+        setTimeout(() => {
+          input.style.borderColor = '';
+          input.placeholder = 'Your name (for the leaderboard)';
+        }, 2500);
+        return;
+      }
       G.playerName = name;
       G.rounds = getDailyRounds();
       G.cur = 0;
@@ -1536,8 +1604,9 @@
       drawCurveInto(document.getElementById('intro-step-svg'),
         { type: 'step', stepAt: 0.5, easeType: 'none' }, 'var(--amber)', 70, 50);
 
-      // ?admin=1 bypasses the already-played gate for testing
-      const isAdmin = new URLSearchParams(window.location.search).get('admin') === '1';
+      // ?admin=1 or ?admin=<password> bypasses the already-played gate for testing
+      const adminParam = new URLSearchParams(window.location.search).get('admin');
+      const isAdmin = adminParam === '1' || adminParam === ADMIN_PASSWORD;
 
       // Check localStorage for today's play
       if (!isAdmin) {
@@ -1880,6 +1949,85 @@
         document.getElementById('app'),
         { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }
       );
+    })();
+
+    // ════════════════════════════════════════════════════════
+    //  ADMIN TOOLS
+    // ════════════════════════════════════════════════════════
+    async function adminDelete() {
+      const name = document.getElementById('admin-name').value.trim();
+      const date = document.getElementById('admin-date').value.trim();
+      const msg = document.getElementById('admin-msg');
+
+      if (!name) { msg.style.color = '#f07070'; msg.textContent = 'Enter a name.'; return; }
+
+      let path = `scores?name=eq.${encodeURIComponent(name)}`;
+      if (date) path += `&date=eq.${encodeURIComponent(date)}`;
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (res.ok) {
+        msg.style.color = 'var(--teal)';
+        msg.textContent = `Deleted scores for "${name}"${date ? ' on ' + date : ''}.`;
+        document.getElementById('admin-name').value = '';
+        document.getElementById('admin-date').value = '';
+        loadAdminScores();
+      } else {
+        msg.style.color = '#f07070';
+        msg.textContent = `Error: ${res.status} — could not delete.`;
+      }
+    }
+
+    async function loadAdminScores() {
+      const list = document.getElementById('admin-lb-list');
+      if (!list) return;
+      list.textContent = 'Loading...';
+      const scores = await loadScores();
+      if (!scores || scores.length === 0) {
+        list.textContent = 'No scores.';
+        return;
+      }
+      // Store scores on window so quickDelete can reference by index safely
+      window._adminScores = scores;
+      list.innerHTML = scores.map((s, i) =>
+        `<div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(164,194,254,0.06);">
+      <span style="color:var(--txt3);min-width:18px;">${i + 1}</span>
+      <span style="flex:1;color:var(--txt);">${s.name}</span>
+      <span style="color:var(--blue-light);font-family:'Space Mono',monospace;">${s.score}</span>
+      <span style="color:var(--txt3);font-size:10px;">${s.date}</span>
+      <button onclick="quickDelete(${i})"
+        style="font-size:10px;padding:2px 7px;background:rgba(240,112,112,0.1);border:1px solid rgba(240,112,112,0.25);border-radius:5px;color:#f07070;cursor:pointer;font-family:inherit;">
+        ×
+      </button>
+    </div>`
+      ).join('');
+    }
+
+    function quickDelete(idx) {
+      const s = window._adminScores && window._adminScores[idx];
+      if (!s) return;
+      document.getElementById('admin-name').value = s.name;
+      document.getElementById('admin-date').value = s.date;
+      adminDelete();
+    }
+
+    // Check for ?admin=1 on init — open admin panel if password provided
+    (function checkAdminParam() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('admin') === ADMIN_PASSWORD) {
+        // Show admin screen after init
+        setTimeout(() => {
+          showScreen('admin');
+          loadAdminScores();
+        }, 100);
+      }
     })();
   </script>
 </body>
