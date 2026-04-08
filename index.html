@@ -1251,19 +1251,24 @@ async function openLeaderboard() {
   drawCurveInto(document.getElementById('intro-step-svg'),
     {type:'step',stepAt:0.5,easeType:'none'}, 'var(--amber)', 70, 50);
 
+  // ?admin=1 bypasses the already-played gate for testing
+  const isAdmin = new URLSearchParams(window.location.search).get('admin') === '1';
+
   // Check localStorage for today's play
-  try {
-    const saved = localStorage.getItem(`gte-played-${key}`);
-    if(saved){
-      const data = JSON.parse(saved);
-      document.getElementById('already-played-msg').style.display = 'block';
-      document.getElementById('already-score').textContent = `${data.score}/600`;
-      document.getElementById('play-form').style.display = 'none';
-      // Still let them access leaderboard
-      G.playerName = data.name || '';
-      G.dailyKey   = key;
-    }
-  } catch(_){}
+  if(!isAdmin) {
+    try {
+      const saved = localStorage.getItem(`gte-played-${key}`);
+      if(saved){
+        const data = JSON.parse(saved);
+        document.getElementById('already-played-msg').style.display = 'block';
+        document.getElementById('already-score').textContent = `${data.score}/600`;
+        document.getElementById('play-form').style.display = 'none';
+        // Still let them access leaderboard
+        G.playerName = data.name || '';
+        G.dailyKey   = key;
+      }
+    } catch(_){}
+  }
 })();
 
 // ════════════════════════════════════════════════════════
