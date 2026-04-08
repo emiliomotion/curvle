@@ -1571,6 +1571,21 @@ async function openLeaderboard() {
   }
   setTimeout(pulseIdleDot, 1500);
 
+
+  // ── Iframe height reporter (for Webflow embed) ────────
+  function reportHeight() {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: 'curvle-height', height: h }, '*');
+  }
+  window.addEventListener('load', reportHeight);
+  window.addEventListener('resize', reportHeight);
+  // Also fire after every screen change so Webflow resizes correctly
+  const _origShowScreen = window.showScreen;
+  // Hook into screen changes via MutationObserver on #app
+  new MutationObserver(reportHeight).observe(
+    document.getElementById('app'),
+    { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }
+  );
 })();
 </script>
 </body>
