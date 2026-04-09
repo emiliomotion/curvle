@@ -861,14 +861,12 @@ function drawCurveInto(svgEl, curve, color, W=90, H=70) {
 //  BEZIER EDITOR
 // ════════════════════════════════════════════════════════
 const BEZ_PAD=18, BEZ_INNER=144, BEZ_SIZE=180;
-const BEZ_OVF=100; // overflow canvas around the graph box so handles can exit freely
-const BEZ_VB=BEZ_SIZE+BEZ_OVF*2; // total viewBox size
 
-function hToSvg(h){ return [BEZ_OVF+BEZ_PAD+h[0]*BEZ_INNER, BEZ_OVF+(BEZ_PAD+BEZ_INNER)-h[1]*BEZ_INNER]; }
+function hToSvg(h){ return [BEZ_PAD+h[0]*BEZ_INNER, (BEZ_PAD+BEZ_INNER)-h[1]*BEZ_INNER]; }
 function svgToH(sx,sy){
   return [
-    Math.max(-0.5, Math.min(1.5,  (sx-BEZ_OVF-BEZ_PAD)/BEZ_INNER)),
-    Math.max(-2.5, Math.min(3.0,  ((BEZ_OVF+BEZ_PAD+BEZ_INNER)-sy)/BEZ_INNER))
+    Math.max(-0.5, Math.min(1.5,  (sx-BEZ_PAD)/BEZ_INNER)),
+    Math.max(-2.5, Math.min(3.0,  ((BEZ_PAD+BEZ_INNER)-sy)/BEZ_INNER))
   ];
 }
 
@@ -876,7 +874,7 @@ let bezDragging=null;
 let bezH1=[0.33,0.33], bezH2=[0.67,0.67];
 
 function buildBezierEditor(container) {
-  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;-webkit-user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_VB} ${BEZ_VB}" style="touch-action:none;overflow:visible;"></svg></div>`;
+  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;-webkit-user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;overflow:visible;"></svg></div>`;
   drawBezierSvg();
   const svg = document.getElementById('bez-svg');
   // Use Pointer Events API — handles mouse, touch, and stylus uniformly.
@@ -891,7 +889,7 @@ function buildBezierEditor(container) {
 function drawBezierSvg() {
   const svg = document.getElementById('bez-svg'); if(!svg) return;
   const [x1,y1]=hToSvg(bezH1), [x2,y2]=hToSvg(bezH2);
-  const ax=BEZ_OVF+BEZ_PAD, ay=BEZ_OVF+BEZ_PAD+BEZ_INNER, bx=BEZ_OVF+BEZ_PAD+BEZ_INNER, by=BEZ_OVF+BEZ_PAD;
+  const ax=BEZ_PAD, ay=BEZ_PAD+BEZ_INNER, bx=BEZ_PAD+BEZ_INNER, by=BEZ_PAD;
   const N=80; const pts=[];
   function Bx(u){ return 3*u*(1-u)*(1-u)*bezH1[0] + 3*u*u*(1-u)*bezH2[0] + u*u*u; }
   function By(u){ return 3*u*(1-u)*(1-u)*bezH1[1] + 3*u*u*(1-u)*bezH2[1] + u*u*u; }
@@ -905,7 +903,7 @@ function drawBezierSvg() {
   // 24px radius on mobile is much easier to grab than 7px
   const HIT = 24;
   svg.innerHTML = `
-    <rect x="${BEZ_OVF+BEZ_PAD}" y="${BEZ_OVF+BEZ_PAD}" width="${BEZ_INNER}" height="${BEZ_INNER}" fill="rgba(38,84,248,0.06)" stroke="rgba(164,194,254,0.15)" stroke-width="0.5" rx="4"/>
+    <rect x="${BEZ_PAD}" y="${BEZ_PAD}" width="${BEZ_INNER}" height="${BEZ_INNER}" fill="rgba(38,84,248,0.06)" stroke="rgba(164,194,254,0.15)" stroke-width="0.5" rx="4"/>
     <line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="rgba(164,194,254,0.08)" stroke-width="0.5" stroke-dasharray="3 3"/>
     <line x1="${ax}" y1="${ay}" x2="${x1}" y2="${y1}" stroke="var(--blue-light)" stroke-width="1" stroke-dasharray="3 2"/>
     <line x1="${bx}" y1="${by}" x2="${x2}" y2="${y2}" stroke="rgba(254,252,238,0.5)" stroke-width="1" stroke-dasharray="3 2"/>
@@ -916,8 +914,8 @@ function drawBezierSvg() {
     <circle class="handle" cx="${x2}" cy="${y2}" r="7" fill="var(--cream)" stroke="#1D1D1E" stroke-width="1.5" data-h="h2"/>
     <circle cx="${x1}" cy="${y1}" r="28" fill="transparent" data-h="h1" style="cursor:grab;"/>
     <circle cx="${x2}" cy="${y2}" r="28" fill="transparent" data-h="h2" style="cursor:grab;"/>
-    <text x="${BEZ_OVF+BEZ_PAD+BEZ_INNER/2}" y="${BEZ_OVF+BEZ_SIZE-4}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif">time</text>
-    <text x="${BEZ_OVF-8}" y="${BEZ_OVF+BEZ_PAD+BEZ_INNER/2}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif" transform="rotate(-90,${BEZ_OVF-8},${BEZ_OVF+BEZ_PAD+BEZ_INNER/2})">value</text>`;
+    <text x="${BEZ_PAD+BEZ_INNER/2}" y="${BEZ_SIZE-4}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif">time</text>
+    <text x="9" y="${BEZ_PAD+BEZ_INNER/2}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif" transform="rotate(-90,9,${BEZ_PAD+BEZ_INNER/2})">value</text>`;
 }
 
 function getBezSvgXY(e) {
