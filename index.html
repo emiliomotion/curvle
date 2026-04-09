@@ -260,7 +260,7 @@
   }
 
   /* ── Curve SVG editor ── */
-  .curve-wrap { position: relative; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
+  .curve-wrap { position: relative; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; overscroll-behavior: none; overflow: visible; }
   .curve-wrap svg { width: 100%; display: block; touch-action: none; }
   .handle { cursor: grab; }
   .handle:active { cursor: grabbing; }
@@ -510,7 +510,7 @@
         </div>
 
         <!-- Right: editor -->
-        <div class="card">
+        <div class="card" id="editor-card" style="overflow:visible;">
           <div class="label">Your curve</div>
           <div id="mode-badge-wrap"></div>
           <div id="editor-area"></div>
@@ -861,14 +861,14 @@ function drawCurveInto(svgEl, curve, color, W=90, H=70) {
 //  BEZIER EDITOR
 // ════════════════════════════════════════════════════════
 const BEZ_PAD=18, BEZ_INNER=144, BEZ_SIZE=180;
-const BEZ_OVF=70; // overflow canvas around the graph box so handles can exit freely
+const BEZ_OVF=100; // overflow canvas around the graph box so handles can exit freely
 const BEZ_VB=BEZ_SIZE+BEZ_OVF*2; // total viewBox size
 
 function hToSvg(h){ return [BEZ_OVF+BEZ_PAD+h[0]*BEZ_INNER, BEZ_OVF+(BEZ_PAD+BEZ_INNER)-h[1]*BEZ_INNER]; }
 function svgToH(sx,sy){
   return [
-    Math.max(-0.5,Math.min(1.5,(sx-BEZ_OVF-BEZ_PAD)/BEZ_INNER)),
-    Math.max(-1.0,Math.min(2.0,((BEZ_OVF+BEZ_PAD+BEZ_INNER)-sy)/BEZ_INNER))
+    Math.max(-0.5, Math.min(1.5,  (sx-BEZ_OVF-BEZ_PAD)/BEZ_INNER)),
+    Math.max(-2.5, Math.min(3.0,  ((BEZ_OVF+BEZ_PAD+BEZ_INNER)-sy)/BEZ_INNER))
   ];
 }
 
@@ -876,7 +876,7 @@ let bezDragging=null;
 let bezH1=[0.33,0.33], bezH2=[0.67,0.67];
 
 function buildBezierEditor(container) {
-  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;-webkit-user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_VB} ${BEZ_VB}" style="touch-action:none;"></svg></div>`;
+  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;-webkit-user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_VB} ${BEZ_VB}" style="touch-action:none;overflow:visible;"></svg></div>`;
   drawBezierSvg();
   const svg = document.getElementById('bez-svg');
   // Use Pointer Events API — handles mouse, touch, and stylus uniformly.
