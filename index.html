@@ -822,6 +822,24 @@ function getStreakEmoji(count) {
   return '▸';
 }
 
+// ── Anonymous player identity ────────────────────────────────────────────────
+function getOrCreatePlayerId() {
+  try {
+    let id = localStorage.getItem('gte-player-id');
+    if(!id) {
+      // Generate a simple UUID v4
+      id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+      localStorage.setItem('gte-player-id', id);
+    }
+    return id;
+  } catch(_) {
+    return 'anonymous-' + Math.random().toString(36).slice(2);
+  }
+}
+
 function getDailyRounds() {
   const d    = new Date();
   const seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
@@ -1040,6 +1058,7 @@ let G = {
   animating:false, playerName:'', lastScore:0,
   editorType:'bezier',
   lastUserCurve: null,
+  playerId: null,
 };
 
 function defaultEditorState(curve) {
@@ -1117,23 +1136,23 @@ async function sbFetch(path, opts={}) {
   return text ? JSON.parse(text) : null;
 }
 
-async function saveScore(name, score, date) {
-  // Upsert: if this player already has a score today, only keep the higher one
+async function saveScore(name, score, date, playerId) {
   return sbFetch('scores', {
     method: 'POST',
-    body: JSON.stringify({ name, score, date }),
+    body: JSON.stringify({ name, score, date, player_id: playerId || 'legacy' }),
     prefer: 'return=minimal',
-    headers: { 'Prefer': 'resolution=ignore-duplicates' },
   });
 }
 
 async function loadScores() {
-  const data = await sbFetch('scores?select=name,score,date&order=score.desc&limit=200');
+  const data = await sbFetch('scores?select=name,score,date,player_id&order=score.desc&limit=500');
   if(!data) return [];
-  // Dedupe client-side: keep only each player's best score across all dates
   const seen = new Map();
   for(const row of data) {
-    const key = row.name.toLowerCase().trim();
+    // Prefer deduping by player_id; fall back to name for legacy rows without one
+    const key = (row.player_id && row.player_id !== 'legacy')
+      ? row.player_id
+      : row.name.toLowerCase().trim();
     if(!seen.has(key) || row.score > seen.get(key).score) {
       seen.set(key, row);
     }
@@ -1226,6 +1245,7 @@ function startGame() {
     return;
   }
   G.playerName   = name;
+  G.playerId     = getOrCreatePlayerId();
   G.rounds       = getDailyRounds();
   G.cur          = 0;
   G.replays      = 0;
@@ -1370,12 +1390,13 @@ async function finishGame() {
   // Save to localStorage
   try {
     localStorage.setItem(`gte-played-${G.dailyKey}`, JSON.stringify({
-      score: G.total, roundScores: G.roundScores, name: G.playerName, streak,
+      score: G.total, roundScores: G.roundScores, name: G.playerName,
+      streak, playerId: G.playerId,
     }));
   } catch(_){}
 
   // Save to Supabase
-  await saveScore(G.playerName, G.total, G.dailyKey);
+  await saveScore(G.playerName, G.total, G.dailyKey, G.playerId);
 
   // Build final screen
   const pct = G.total / (TOTAL_ROUNDS*100);
@@ -1428,7 +1449,10 @@ async function openLeaderboard() {
 
   const medals = ['🥇','🥈','🥉'];
   list.innerHTML = scores.map((s,i) => {
-    const isYou = s.name === G.playerName;
+    const myId = G.playerId || getOrCreatePlayerId();
+    const isYou = (s.player_id && s.player_id !== 'legacy')
+      ? s.player_id === myId
+      : s.name === G.playerName;
     return `
       <div class="lb-row ${isYou?'is-you':''}">
         <span class="lb-rank">${medals[i]||i+1}</span>
@@ -1472,6 +1496,7 @@ async function openLeaderboard() {
         G.playerName = data.name || '';
         G.dailyKey   = key;
         G.streak     = data.streak || calcStreak(key);
+        G.playerId   = data.playerId || getOrCreatePlayerId();
       }
     } catch(_){}
   }
