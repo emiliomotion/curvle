@@ -452,6 +452,20 @@
       }
     }
 
+    /* Submit button — toggled by JS based on window.innerWidth */
+    .submit-row-desktop {
+      display: flex;
+    }
+
+    .submit-row-mobile {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
     /* ── Replay pips ── */
     .pips {
       display: flex;
@@ -797,10 +811,16 @@
             <div id="editor-area"></div>
             <button class="btn" style="font-size:11px;padding:4px 10px;margin-top:8px;"
               onclick="resetEditor()">Reset</button>
+            <div class="submit-row-mobile">
+              <button class="btn btn--primary btn--lg btn--full" id="btn-submit-mobile" onclick="submitGuess()">Submit
+                guess</button>
+              <span style="font-size:11px;color:var(--blue-light);opacity:0.5;text-align:center;"
+                id="submit-hint-mobile">Preview the animation first</span>
+            </div>
           </div>
         </div>
 
-        <div class="row">
+        <div class="row submit-row-desktop">
           <button class="btn btn--primary btn--lg" id="btn-submit" onclick="submitGuess()">Submit guess</button>
           <span style="font-size:12px;color:var(--blue-light);opacity:0.5;" id="submit-hint">Preview the animation
             first</span>
@@ -1160,8 +1180,8 @@
     function hToSvg(h) { return [BEZ_PAD + h[0] * BEZ_INNER, (BEZ_PAD + BEZ_INNER) - h[1] * BEZ_INNER]; }
     function svgToH(sx, sy) {
       return [
-        Math.max(0, Math.min(1, (sx - BEZ_PAD) / BEZ_INNER)),
-        Math.max(-0.5, Math.min(1.5, ((BEZ_PAD + BEZ_INNER) - sy) / BEZ_INNER))
+        Math.max(-0.2, Math.min(1.2, (sx - BEZ_PAD) / BEZ_INNER)),
+        Math.max(-1.0, Math.min(2.0, ((BEZ_PAD + BEZ_INNER) - sy) / BEZ_INNER))
       ];
     }
 
@@ -1536,6 +1556,10 @@
       document.getElementById('btn-replay').disabled = true;
       document.getElementById('btn-submit').disabled = false;
       document.getElementById('submit-hint').style.display = '';
+      const mobileBtn = document.getElementById('btn-submit-mobile');
+      const mobileHint = document.getElementById('submit-hint-mobile');
+      if (mobileBtn) { mobileBtn.disabled = false; }
+      if (mobileHint) { mobileHint.style.display = ''; }
       for (let i = 0; i < 3; i++) document.getElementById('pip' + i).classList.remove('used');
 
       // Progress bar
@@ -1579,6 +1603,8 @@
       document.getElementById('btn-preview').disabled = true;
       document.getElementById('btn-preview').textContent = 'Previewed ✓';
       document.getElementById('submit-hint').style.display = 'none';
+      const mh = document.getElementById('submit-hint-mobile');
+      if (mh) mh.style.display = 'none';
       animateDot(G.rounds[G.cur], () => {
         document.getElementById('btn-replay').disabled = false;
       });
@@ -1597,6 +1623,10 @@
     function submitGuess() {
       if (!G.prevDone) {
         document.getElementById('btn-preview').style.outline = '2px solid var(--amber)';
+        ['btn-submit', 'btn-submit-mobile'].forEach(id => {
+          const b = document.getElementById(id);
+          if (b) { b.style.outline = '2px solid var(--amber)'; setTimeout(() => { b.style.outline = ''; }, 1200); }
+        });
         setTimeout(() => { document.getElementById('btn-preview').style.outline = ''; }, 1200);
         return;
       }
@@ -2153,6 +2183,26 @@
         }, 100);
       }
     })();
+
+    // ── Responsive submit button ─────────────────────────────────────────────────
+    function updateSubmitLayout() {
+      const isMobile = window.innerWidth <= 520;
+      const desktop = document.querySelector('.submit-row-desktop');
+      const mobile = document.querySelector('.submit-row-mobile');
+      if (!desktop || !mobile) return;
+      if (isMobile) {
+        desktop.style.display = 'none';
+        mobile.style.display = 'flex';
+      } else {
+        desktop.style.display = 'flex';
+        mobile.style.display = 'none';
+      }
+    }
+    window.addEventListener('load', updateSubmitLayout);
+    window.addEventListener('resize', updateSubmitLayout);
+    // Also run immediately in case load already fired
+    updateSubmitLayout();
+
   </script>
 </body>
 
