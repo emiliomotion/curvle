@@ -324,6 +324,33 @@
   }
   .lb-row.is-you { background: rgba(38,84,248,0.1); }
   .lb-date { font-size: 11px; color: var(--txt3); margin-left: 4px; font-family: 'Space Mono', monospace; }
+  /* Achievement tooltip */
+  .ach-item { position: relative; }
+  .ach-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%; transform: translateX(-50%);
+    background: #1D1D1E;
+    border: 1px solid rgba(38,84,248,0.45);
+    border-radius: 10px;
+    padding: 10px 12px;
+    width: 220px;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 4px 24px rgba(38,84,248,0.2);
+  }
+  .ach-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%; transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(38,84,248,0.45);
+  }
+  .ach-item:hover .ach-tooltip { display: block; }
+  .ach-tooltip-name { font-size: 12px; font-weight: 700; color: #FEFCEE; line-height: 1.4; margin-bottom: 4px; }
+  .ach-tooltip-desc { font-size: 11px; color: rgba(254,252,238,0.5); line-height: 1.4; }
+
   .player-tag {
     font-family: 'Space Mono', monospace;
     font-size: 11px;
@@ -588,9 +615,9 @@
         </button>
       </div>
 
-      <div class="card" style="background:rgba(255,255,255,0.015);">
+      <div class="card" style="background:rgba(255,255,255,0.015);overflow:visible;">
         <div class="label">Achievements</div>
-        <div id="achievements-panel"></div>
+        <div id="achievements-panel" style="overflow:visible;"></div>
       </div>
 
       <div class="row" style="justify-content:center;">
@@ -985,7 +1012,11 @@ function checkAchievements(gameData) {
           resetUsed, noHandleMoveRounds, gameStartTime, userCurves } = gameData;
 
   const newlyUnlocked = [];
-  const tryUnlock = (id) => { if(unlockAchievement(id)) newlyUnlocked.push(id); };
+  const tryUnlock = (id) => {
+    if(unlockAchievement(id)) {
+      newlyUnlocked.push(id);
+    }
+  };
 
   const totalGames = incrementTotalGames();
   const hour = new Date().getHours();
@@ -1101,6 +1132,15 @@ function checkExtremeHandle() {
 }
 
 // ── Achievement display ────────────────────────────────────────────────────────
+// Fire a popup immediately — works on any screen, not just final
+function popAchievement(id) {
+  if(!unlockAchievement(id)) return; // already earned, skip
+  showAchievementPopup(id, null);
+  // Rebuild achievements panel if it's visible
+  const p = document.getElementById('achievements-panel');
+  if(p && p.innerHTML) p.innerHTML = buildAchievementsPanel();
+}
+
 function showAchievementPopup(id, onDone) {
   const ach = ACHIEVEMENTS.find(a => a.id === id);
   if(!ach) { if(onDone) onDone(); return; }
@@ -1137,7 +1177,7 @@ function showAchievementPopup(id, onDone) {
       popup.remove();
       if(onDone) onDone();
     }, 400);
-  }, 2800);
+  }, 7000);
 }
 
 function showAchievementsSequence(ids, onDone) {
@@ -1159,16 +1199,20 @@ function buildAchievementsPanel() {
       <div style="display:flex;flex-wrap:wrap;gap:6px;">`;
     catAchs.forEach(a => {
       const earned = unlocked.includes(a.id);
-      html += `<div title="${a.name}&#10;${a.desc}" style="
+      html += `<div class="ach-item" style="
         display:flex;align-items:center;gap:6px;padding:5px 10px;
         border-radius:8px;border:1px solid ${earned?'rgba(38,84,248,0.4)':'rgba(255,255,255,0.07)'};
         background:${earned?'rgba(38,84,248,0.12)':'rgba(255,255,255,0.02)'};
         opacity:${earned?'1':'0.35'};
         font-size:11px;color:${earned?'#FEFCEE':'rgba(255,255,255,0.4)'};
-        transition:opacity 0.2s;cursor:default;max-width:100%;
+        transition:opacity 0.2s;cursor:default;max-width:100%;position:relative;
       ">
-        <span style="font-size:14px;line-height:1;">${a.icon}</span>
+        <span style="font-size:14px;line-height:1;flex-shrink:0;">${a.icon}</span>
         <span style="font-weight:${earned?'600':'400'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;">${earned?a.name:'???'}</span>
+        <div class="ach-tooltip">
+          <div class="ach-tooltip-name">${earned?a.name:'Locked'}</div>
+          <div class="ach-tooltip-desc">${earned?a.desc:'Keep playing to unlock this achievement'}</div>
+        </div>
       </div>`;
     });
     html += '</div></div>';
@@ -1540,7 +1584,7 @@ async function handleShare() {
   }
   try {
     await navigator.clipboard.writeText(text);
-    unlockAchievement('first_share');
+    popAchievement('first_share');
     btn.classList.add('btn--success');
     btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
     setTimeout(() => {
@@ -1701,7 +1745,7 @@ function submitGuess() {
     if(unmoved) G.noHandleMoveRounds++;
   }
   // Overthink achievement
-  if(checkOverthink()) unlockAchievement('overthink');
+  if(checkOverthink()) popAchievement('overthink');
   const score = scoreCurves(userCurve, G.rounds[G.cur], G.maxScore);
   G.lastScore = score;
   G.total    += score;
@@ -1814,25 +1858,22 @@ async function finishGame() {
 
   showScreen('final');
 
-  // Rebuild panel after unlock so newly earned ones light up
-  if(newAchs.length > 0) {
-    setTimeout(() => {
-      const p = document.getElementById('achievements-panel');
-      if(p) p.innerHTML = buildAchievementsPanel();
-      showAchievementsSequence(newAchs);
-    }, 600);
-  }
+  // Rebuild panel so newly earned ones light up (popups already fired mid-game)
+  setTimeout(() => {
+    const p = document.getElementById('achievements-panel');
+    if(p) p.innerHTML = buildAchievementsPanel();
+  }, 300);
 }
 
 async function openLeaderboard() {
-  unlockAchievement('first_lb');
+  popAchievement('first_lb');
   showScreen('leaderboard');
   const list = document.getElementById('lb-list');
   list.innerHTML = '<div class="empty-state">Loading...</div>';
   const scores = await loadScores();
 
   if(!scores || scores.length===0){
-    unlockAchievement('empty_lb');
+    popAchievement('empty_lb');
     list.innerHTML = '<div class="empty-state">No scores yet — be the first!</div>';
     return;
   }
