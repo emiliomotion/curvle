@@ -866,16 +866,16 @@ let bezDragging=null;
 let bezH1=[0.33,0.33], bezH2=[0.67,0.67];
 
 function buildBezierEditor(container) {
-  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;user-select:none;-webkit-user-select:none;"></svg></div>`;
+  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;-webkit-user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;"></svg></div>`;
   drawBezierSvg();
   const svg = document.getElementById('bez-svg');
-  svg.addEventListener('mousedown', bezDown);
-  // Attach touchstart, touchmove, touchend all on the SVG element itself
-  // so the browser locks the entire gesture as non-scrollable from the first frame
-  svg.addEventListener('touchstart',  bezTouchDown, {passive:false});
-  svg.addEventListener('touchmove',   bezTouchMove, {passive:false});
-  svg.addEventListener('touchend',    bezTouchEnd,  {passive:true});
-  svg.addEventListener('touchcancel', bezTouchEnd,  {passive:true});
+  // Use Pointer Events API — handles mouse, touch, and stylus uniformly.
+  // setPointerCapture locks the pointer to the SVG for the entire drag,
+  // preventing the iframe or browser from stealing it mid-gesture.
+  svg.addEventListener('pointerdown',  bezPointerDown);
+  svg.addEventListener('pointermove',  bezPointerMove);
+  svg.addEventListener('pointerup',    bezPointerUp);
+  svg.addEventListener('pointercancel',bezPointerUp);
 }
 
 function drawBezierSvg() {
@@ -915,17 +915,12 @@ function getBezSvgXY(e) {
   const r=svg.getBoundingClientRect();
   const vb=svg.viewBox.baseVal;
   const sx=vb.width/r.width, sy=vb.height/r.height;
-  // Use changedTouches for touchend, touches for touchstart/touchmove
-  const touch = e.changedTouches ? e.changedTouches[0] : (e.touches ? e.touches[0] : e);
-  return [(touch.clientX-r.left)*sx,(touch.clientY-r.top)*sy];
+  return [(e.clientX-r.left)*sx,(e.clientY-r.top)*sy];
 }
 
-// Hit radius is larger on touch devices — 28px vs 16px
-function bezHitTest(sx,sy,h){
+function bezHitTest(sx,sy,h,r=28){
   const[hx,hy]=hToSvg(h);
-  const isTouchDevice = window.matchMedia('(pointer:coarse)').matches;
-  const radius = isTouchDevice ? 28 : 16;
-  return Math.hypot(sx-hx,sy-hy) < radius;
+  return Math.hypot(sx-hx,sy-hy) < r;
 }
 
 function bezDown(e){
@@ -934,35 +929,37 @@ function bezDown(e){
   else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
   if(bezDragging) e.preventDefault();
 }
-function bezTouchDown(e){
-  e.preventDefault();
-  e.stopPropagation();
+
+function bezPointerDown(e) {
   const[sx,sy]=getBezSvgXY(e);
   if(bezHitTest(sx,sy,bezH1)) bezDragging='h1';
   else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
-  if(bezDragging) document.body.classList.add('bez-active');
+  if(bezDragging) {
+    // setPointerCapture is the key — routes ALL pointer events to this element
+    // for the life of the gesture, even if the finger leaves the SVG bounds
+    e.target.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    document.body.classList.add('bez-active');
+  }
 }
-function bezTouchMove(e) {
+function bezPointerMove(e) {
   if(!bezDragging) return;
   e.preventDefault();
-  e.stopPropagation();
   const[sx,sy]=getBezSvgXY(e);
   if(bezDragging==='h1') bezH1=svgToH(sx,sy);
   else bezH2=svgToH(sx,sy);
   drawBezierSvg();
 }
-function bezTouchEnd(e) {
+function bezPointerUp(e) {
   bezDragging=null;
   document.body.classList.remove('bez-active');
 }
-window.addEventListener('mousemove',e=>{
-  if(!bezDragging) return;
+// Keep old bezDown for mouse fallback on browsers without pointer events
+function bezDown(e){
   const[sx,sy]=getBezSvgXY(e);
-  if(bezDragging==='h1') bezH1=svgToH(sx,sy);
-  else bezH2=svgToH(sx,sy);
-  drawBezierSvg();
-});
-window.addEventListener('mouseup',()=>{ bezDragging=null; });
+  if(bezHitTest(sx,sy,bezH1)) bezDragging='h1';
+  else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
+}
 
 // ════════════════════════════════════════════════════════
 //  SPRING / STEP EDITORS
