@@ -324,6 +324,15 @@
   }
   .lb-row.is-you { background: rgba(38,84,248,0.1); }
   .lb-date { font-size: 11px; color: var(--txt3); margin-left: 4px; font-family: 'Space Mono', monospace; }
+  .player-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--blue-light);
+    opacity: 0.6;
+    font-weight: 400;
+    margin-left: 3px;
+  }
+  .lb-row.is-you .player-tag { opacity: 0.9; }
 
   /* ── Share card ── */
   .share-preview {
@@ -469,7 +478,8 @@
       </div>
 
       <div id="play-form">
-        <input type="text" id="name-input" placeholder="Your name (for the leaderboard)" maxlength="24" style="text-align:center;margin-bottom:10px;"/>
+        <input type="text" id="name-input" placeholder="Your name" maxlength="24" style="text-align:center;margin-bottom:6px;" oninput="updateTagPreview()"/>
+        <div id="tag-preview" style="font-size:11px;font-family:'Space Mono',monospace;color:var(--blue-light);opacity:0.5;text-align:center;margin-bottom:10px;min-height:16px;"></div>
         <button class="btn btn--primary btn--full btn--lg" onclick="startGame()">Play today's challenge</button>
       </div>
 
@@ -651,6 +661,15 @@ const BLOCKED_WORDS = [
   'rape','rapist','pedophile','pedo','kike','chink','spic','wetback',
 ];
 
+function updateTagPreview() {
+  const el = document.getElementById('tag-preview');
+  if(!el) return;
+  const name = document.getElementById('name-input').value.trim();
+  const id = getOrCreatePlayerId();
+  const tag = tagFromId(id);
+  el.textContent = name ? `You'll appear as: ${name} ${tag}` : '';
+}
+
 function sanitizeName(raw) {
   // Strip non-printable chars and trim
   let name = raw.replace(/[^ -~]/g, '').trim().slice(0, 24);
@@ -823,6 +842,19 @@ function getStreakEmoji(count) {
 }
 
 // ── Anonymous player identity ────────────────────────────────────────────────
+// Derives a short 4-char hex tag from a UUID, e.g. "Jason #4f2a"
+// Consistent — same UUID always gives same tag
+function tagFromId(id) {
+  if(!id || id === 'legacy') return '';
+  // Take last 4 chars of the UUID (after last dash) for readability
+  const parts = id.split('-');
+  return '#' + (parts[parts.length - 1] || id).slice(0, 4).toLowerCase();
+}
+
+function displayName(name, playerId) {
+  const tag = tagFromId(playerId);
+  return tag ? `${name} <span class="player-tag">${tag}</span>` : name;
+}
 function getOrCreatePlayerId() {
   try {
     let id = localStorage.getItem('gte-player-id');
@@ -1409,6 +1441,16 @@ async function finishGame() {
   document.getElementById('final-date').textContent  = `${G.dailyKey} · Daily challenge`;
   document.getElementById('final-score').textContent = G.total;
   document.getElementById('final-grade').textContent = `/ 600 · ${grade}`;
+  // Show player tag under score so they know their identity
+  const tag = tagFromId(G.playerId);
+  let tagEl = document.getElementById('final-player-tag');
+  if(!tagEl) {
+    tagEl = document.createElement('div');
+    tagEl.id = 'final-player-tag';
+    tagEl.style.cssText = 'font-size:12px;font-family:\'Space Mono\',monospace;color:var(--blue-light);opacity:0.55;margin-top:4px;';
+    document.getElementById('final-grade').insertAdjacentElement('afterend', tagEl);
+  }
+  tagEl.textContent = tag ? `${G.playerName} ${tag}` : G.playerName;
 
   const tiles = document.getElementById('score-tiles');
   tiles.innerHTML = '';
@@ -1456,7 +1498,7 @@ async function openLeaderboard() {
     return `
       <div class="lb-row ${isYou?'is-you':''}">
         <span class="lb-rank">${medals[i]||i+1}</span>
-        <span class="lb-name">${s.name}${isYou?'<span class="lb-you">you</span>':''}</span>
+        <span class="lb-name">${displayName(s.name, s.player_id)}${isYou?'<span class="lb-you">you</span>':''}</span>
         <span class="lb-score">${s.score}</span>
         <span style="font-size:11px;color:var(--txt3);">/600</span>
         <span class="lb-date">${s.date||''}</span>
@@ -1470,6 +1512,8 @@ async function openLeaderboard() {
 (function init() {
   const key = todayKey();
   document.getElementById('intro-date').textContent = `Daily challenge · ${key}`;
+  // Pre-populate tag preview
+  setTimeout(updateTagPreview, 50);
 
   // Draw intro preview curves
   drawCurveInto(document.getElementById('intro-bezier-svg'),
