@@ -1,1114 +1,894 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Curvle</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    :root {
-      /* Brand palette */
-      --blue: #2654F8;
-      --blue-deep: #283DA6;
-      --blue-light: #A4C2FE;
-      --dark: #1D1D1E;
-      --cream: #FEFCEE;
-      --mid: #616160;
-
-      /* Semantic mappings */
-      --bg: var(--dark);
-      --card: rgba(38, 84, 248, 0.07);
-      --card-hi: rgba(38, 84, 248, 0.13);
-      --border: rgba(164, 194, 254, 0.12);
-      --border2: rgba(164, 194, 254, 0.22);
-      --txt: var(--cream);
-      --txt2: rgba(254, 252, 238, 0.55);
-      --txt3: rgba(254, 252, 238, 0.30);
-      --accent: var(--blue);
-      --accent2: var(--blue-deep);
-      --hi: var(--blue-light);
-      --amber: #F5A623;
-      --teal: #5DCAA5;
-    }
-
-    html,
-    body {
-      height: 100%;
-      background: var(--dark);
-      color: var(--txt);
-      font-family: 'Space Grotesk', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
-    }
-
-    /* ── Parallax background ── */
-    #parallax-bg {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .px-shape {
-      position: absolute;
-      will-change: transform;
-      opacity: 0;
-    }
-
-    /* circles */
-    .px-circle {
-      border-radius: 50%;
-      border: 1px solid;
-    }
-
-    /* lines */
-    .px-line {
-      height: 1px;
-      transform-origin: left center;
-    }
-
-    /* dots */
-    .px-dot {
-      border-radius: 50%;
-    }
-
-    /* diamond */
-    .px-diamond {
-      transform-origin: center center;
-    }
-
-    #app {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
-    }
-
-    .panel {
-      width: 100%;
-      max-width: 660px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .panel--narrow {
-      max-width: 420px;
-    }
-
-    .panel--mid {
-      max-width: 500px;
-    }
-
-    /* ── Cards ── */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      transition: border-color 0.2s;
-    }
-
-    .card:hover {
-      border-color: var(--border2);
-    }
-
-    .screen {
-      display: none;
-    }
-
-    .screen.active {
-      display: block;
-    }
-
-    /* ── Buttons ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      font-family: inherit;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 8px 16px;
-      background: transparent;
-      color: var(--txt2);
-      transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
-      letter-spacing: 0.02em;
-      white-space: nowrap;
-    }
-
-    .btn:hover {
-      background: rgba(164, 194, 254, 0.08);
-      color: var(--txt);
-      border-color: rgba(164, 194, 254, 0.35);
-      box-shadow: 0 0 16px rgba(38, 84, 248, 0.15);
-    }
-
-    .btn:active {
-      transform: scale(0.97);
-    }
-
-    .btn:disabled {
-      opacity: 0.30;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    .btn--primary {
-      background: var(--blue);
-      border-color: var(--blue-deep);
-      color: var(--cream);
-      box-shadow: 0 0 0 rgba(38, 84, 248, 0);
-      transition: background 0.15s, box-shadow 0.2s, transform 0.1s;
-    }
-
-    .btn--primary:hover {
-      background: #3a68ff;
-      box-shadow: 0 0 28px rgba(38, 84, 248, 0.45), 0 0 8px rgba(164, 194, 254, 0.2);
-      color: #fff;
-      border-color: var(--blue);
-    }
-
-    .btn--success {
-      background: #1a7a5e;
-      border-color: #0f5a44;
-      color: #fff;
-    }
-
-    .btn--full {
-      width: 100%;
-    }
-
-    .btn--lg {
-      font-size: 14px;
-      padding: 12px 24px;
-    }
-
-    /* ── Typography ── */
-    .label {
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--txt3);
-      margin-bottom: 8px;
-    }
-
-    .mode-badge {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      border: 1px solid;
-    }
-
-    .mode-badge--bezier {
-      background: rgba(38, 84, 248, 0.15);
-      color: var(--blue-light);
-      border-color: rgba(38, 84, 248, 0.3);
-    }
-
-    .mode-badge--spring {
-      background: rgba(93, 202, 165, 0.12);
-      color: var(--teal);
-      border-color: rgba(93, 202, 165, 0.25);
-    }
-
-    .mode-badge--step {
-      background: rgba(245, 166, 35, 0.12);
-      color: var(--amber);
-      border-color: rgba(245, 166, 35, 0.25);
-    }
-
-    /* ── Inputs ── */
-    input[type=text],
-    input[type=email] {
-      width: 100%;
-      background: rgba(38, 84, 248, 0.08);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 14px;
-      color: var(--txt);
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input[type=text]:focus,
-    input[type=email]:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(38, 84, 248, 0.2);
-    }
-
-    input[type=range] {
-      flex: 1;
-      accent-color: var(--blue);
-      height: 4px;
-      cursor: pointer;
-    }
-
-    select {
-      background: rgba(38, 84, 248, 0.1);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 12px;
-      color: var(--txt);
-      font-family: inherit;
-      cursor: pointer;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    select:focus {
-      border-color: var(--blue);
-    }
-
-    select option {
-      background: #1D1D1E;
-    }
-
-    /* ── Progress bar ── */
-    .progress-bar {
-      display: flex;
-      gap: 5px;
-      margin-bottom: 4px;
-    }
-
-    .progress-seg {
-      height: 3px;
-      flex: 1;
-      border-radius: 2px;
-      background: rgba(164, 194, 254, 0.10);
-      transition: background 0.4s;
-    }
-
-    .progress-seg.done {
-      background: var(--blue);
-    }
-
-    .progress-seg.current {
-      background: var(--blue-light);
-    }
-
-    /* ── Anim stage ── */
-    .anim-stage {
-      width: 100%;
-      min-width: 200px;
-      height: 64px;
-      position: relative;
-      background: rgba(38, 84, 248, 0.06);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-bottom: 10px;
-    }
-
-    /* subtle grid lines on stage */
-    .anim-stage::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(164, 194, 254, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(164, 194, 254, 0.04) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-
-    .anim-dot {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: var(--cream);
-      box-shadow: 0 0 0 2px var(--blue), 0 0 14px rgba(38, 84, 248, 0.7);
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 2;
-    }
-
-    /* ── Curve SVG editor ── */
-    .curve-wrap {
-      position: relative;
-      touch-action: none;
-      cursor: crosshair;
-    }
-
-    .curve-wrap svg {
-      width: 100%;
-      display: block;
-    }
-
-    .handle {
-      cursor: grab;
-    }
-
-    .handle:active {
-      cursor: grabbing;
-    }
-
-    /* ── Slider row ── */
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .slider-row .sl-label {
-      font-size: 12px;
-      color: var(--txt2);
-      min-width: 64px;
-    }
-
-    .slider-row .sl-val {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--blue-light);
-      min-width: 34px;
-      text-align: right;
-      font-family: 'Space Mono', monospace;
-    }
-
-    /* ── Two-col game grid ── */
-    .game-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    @media (max-width: 520px) {
-      .game-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* ── Replay pips ── */
-    .pips {
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-
-    .pip {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--blue);
-      transition: background 0.3s, transform 0.2s;
-      box-shadow: 0 0 6px rgba(38, 84, 248, 0.5);
-    }
-
-    .pip.used {
-      background: rgba(164, 194, 254, 0.12);
-      box-shadow: none;
-      transform: scale(0.8);
-    }
-
-    /* ── Leaderboard ── */
-    .lb-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 6px;
-      border-bottom: 1px solid rgba(164, 194, 254, 0.06);
-      font-size: 13px;
-      border-radius: 8px;
-      transition: background 0.15s;
-    }
-
-    .lb-row:hover {
-      background: rgba(38, 84, 248, 0.06);
-    }
-
-    .lb-row:last-child {
-      border-bottom: none;
-    }
-
-    .lb-rank {
-      width: 28px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .lb-name {
-      flex: 1;
-      color: var(--txt);
-    }
-
-    .lb-score {
-      font-weight: 700;
-      color: var(--cream);
-      font-family: 'Space Mono', monospace;
-      font-size: 14px;
-    }
-
-    .lb-you {
-      font-size: 10px;
-      background: rgba(38, 84, 248, 0.25);
-      color: var(--blue-light);
-      padding: 1px 7px;
-      border-radius: 5px;
-      margin-left: 6px;
-      font-weight: 700;
-      border: 1px solid rgba(38, 84, 248, 0.4);
-    }
-
-    .lb-row.is-you {
-      background: rgba(38, 84, 248, 0.1);
-    }
-
-    .lb-date {
-      font-size: 11px;
-      color: var(--txt3);
-      margin-left: 4px;
-      font-family: 'Space Mono', monospace;
-    }
-
-    /* ── Share card ── */
-    .share-preview {
-      font-family: 'Space Mono', monospace;
-      font-size: 12px;
-      line-height: 1.9;
-      color: var(--txt);
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      margin-bottom: 12px;
-      letter-spacing: 0.02em;
-      white-space: pre;
-      overflow-x: auto;
-    }
-
-    /* ── Round score tiles ── */
-    .score-tiles {
-      display: flex;
-      gap: 7px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 14px 0;
-    }
-
-    .score-tile {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
-      font-family: 'Space Mono', monospace;
-      border: 1px solid transparent;
-      transition: transform 0.2s;
-    }
-
-    .score-tile:hover {
-      transform: scale(1.08);
-    }
-
-    .score-tile .tile-r {
-      font-size: 8px;
-      font-weight: 400;
-      opacity: 0.45;
-      margin-bottom: 2px;
-      font-family: 'Space Grotesk', sans-serif;
-    }
-
-    /* ── Logo / intro ── */
-    .logo {
-      font-size: 52px;
-      font-weight: 700;
-      letter-spacing: -0.05em;
-      color: var(--cream);
-      line-height: 1;
-      position: relative;
-      display: inline-block;
-    }
-
-    .logo span {
-      background: linear-gradient(90deg, var(--blue-light), var(--blue), var(--blue-light));
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: logo-shimmer 3s linear infinite;
-    }
-
-    @keyframes logo-shimmer {
-      0% {
-        background-position: 0% center;
-      }
-
-      100% {
-        background-position: 200% center;
-      }
-    }
-
-    .tagline {
-      font-size: 14px;
-      color: var(--txt2);
-      margin-top: 10px;
-      line-height: 1.7;
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 28px 0;
-      font-size: 13px;
-      color: var(--txt3);
-    }
-
-    /* ── Intro curve preview cards ── */
-    .intro-curve-card {
-      padding: 12px 14px;
-      opacity: 0.85;
-      text-align: left;
-      transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
-      cursor: default;
-    }
-
-    .intro-curve-card:hover {
-      opacity: 1;
-      transform: translateY(-2px);
-      border-color: rgba(164, 194, 254, 0.3);
-    }
-
-    /* ── Score number ── */
-    .score-num {
-      font-family: 'Space Mono', monospace;
-      font-size: 52px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      color: var(--cream);
-      line-height: 1;
-    }
-
-    /* ── Glowing divider ── */
-    .glow-line {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(38, 84, 248, 0.5), var(--blue-light), rgba(38, 84, 248, 0.5), transparent);
-      margin: 4px 0;
-      animation: glow-pulse 2.5s ease-in-out infinite;
-    }
-
-    @keyframes glow-pulse {
-
-      0%,
-      100% {
-        opacity: 0.5;
-      }
-
-      50% {
-        opacity: 1;
-      }
-    }
-
-    /* ── Config note ── */
-    .config-note {
-      background: rgba(245, 166, 35, 0.08);
-      border: 1px solid rgba(245, 166, 35, 0.2);
-      border-radius: 10px;
-      padding: 12px 14px;
-      font-size: 12px;
-      color: var(--amber);
-      line-height: 1.6;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Curvle — Daily Easing Curve Challenge for Motion Designers</title>
+
+<!-- SEO -->
+<meta name="description" content="Curvle is the daily easing curve challenge for motion designers and animators. Watch an animation, match its speed curve using bezier handles, spring controls, or step editors. 6 rounds, new puzzle every day, global leaderboard."/>
+<meta name="keywords" content="motion design game, easing curve game, animation game, bezier curve, after effects, motion designer, daily challenge, wordle for animators, easing, keyframe"/>
+<meta name="author" content="Emilio Motion"/>
+<link rel="canonical" href="https://www.emiliomotion.com/curvle"/>
+
+<!-- Open Graph (Facebook, LinkedIn, Discord, iMessage) -->
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://www.emiliomotion.com/curvle"/>
+<meta property="og:title" content="Curvle — Daily Easing Curve Challenge"/>
+<meta property="og:description" content="Curvle is the daily easing curve challenge for motion designers and animators. Watch an animation, match its speed curve using bezier handles, spring controls, or step editors. 6 rounds, new puzzle every day, global leaderboard."/>
+<meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjYzMCIgdmlld0JveD0iMCAwIDEyMDAgNjMwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFEMUQxRSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNDE0MjgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InRpdGxlZ3JhZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQTRDMkZFIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZFRkNFRSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iY3VydmdyYWQiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIwIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2NTRGOCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNBNEMyRkUiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgoKICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFN1YnRsZSBncmlkIC0tPgogIDxnIG9wYWNpdHk9IjAuMDQiIHN0cm9rZT0iI0E0QzJGRSIgc3Ryb2tlLXdpZHRoPSIxIj4KICAgIDxsaW5lIHgxPSIwIiB5MT0iMTA1IiB4Mj0iMTIwMCIgeTI9IjEwNSIvPgogICAgPGxpbmUgeDE9IjAiIHkxPSIyMTAiIHgyPSIxMjAwIiB5Mj0iMjEwIi8+CiAgICA8bGluZSB4MT0iMCIgeTE9IjMxNSIgeDI9IjEyMDAiIHkyPSIzMTUiLz4KICAgIDxsaW5lIHgxPSIwIiB5MT0iNDIwIiB4Mj0iMTIwMCIgeTI9IjQyMCIvPgogICAgPGxpbmUgeDE9IjAiIHkxPSI1MjUiIHgyPSIxMjAwIiB5Mj0iNTI1Ii8+CiAgICA8bGluZSB4MT0iMjAwIiB5MT0iMCIgeDI9IjIwMCIgeTI9IjYzMCIvPgogICAgPGxpbmUgeDE9IjQwMCIgeTE9IjAiIHgyPSI0MDAiIHkyPSI2MzAiLz4KICAgIDxsaW5lIHgxPSI2MDAiIHkxPSIwIiB4Mj0iNjAwIiB5Mj0iNjMwIi8+CiAgICA8bGluZSB4MT0iODAwIiB5MT0iMCIgeDI9IjgwMCIgeTI9IjYzMCIvPgogICAgPGxpbmUgeDE9IjEwMDAiIHkxPSIwIiB4Mj0iMTAwMCIgeTI9IjYzMCIvPgogIDwvZz4KCiAgPCEtLSBCYWNrZ3JvdW5kIGdsb3cgYmxvYnMgLS0+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iNTAwIiByPSIyODAiIGZpbGw9IiMyNjU0RjgiIG9wYWNpdHk9IjAuMDciLz4KICA8Y2lyY2xlIGN4PSIxMDUwIiBjeT0iMTUwIiByPSIyMjAiIGZpbGw9IiMyODNEQTYiIG9wYWNpdHk9IjAuMDkiLz4KCiAgPCEtLSBUaHJlZSBjdXJ2ZSBwcmV2aWV3cyDigJQgZGVjb3JhdGl2ZSwgcmlnaHQgc2lkZSAtLT4KICA8IS0tIEVhc2Ugb3V0IGJlemllciAtLT4KICA8ZyBvcGFjaXR5PSIwLjE4Ij4KICAgIDxwYXRoIGQ9Ik0gNjgwIDU0MCBDIDcyMCA1NDAgNzQwIDE0MCAxMTYwIDE0MCIKICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjQTRDMkZFIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwvZz4KICA8IS0tIFNwcmluZyBvdmVyc2hvb3QgLS0+CiAgPGcgb3BhY2l0eT0iMC4xMyI+CiAgICA8cGF0aCBkPSJNIDY4MCA1NDAgQyA3OTAgNTQwIDgxMCA2MCA5MDAgMTQwIEMgOTcwIDIwMCA5ODAgMTAwIDEwMTAgMTMwIEMgMTA0MCAxNTUgMTA1MCAxNDAgMTE2MCAxNDAiCiAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI2NTRGOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwvZz4KICA8IS0tIFN0ZXAgLS0+CiAgPGcgb3BhY2l0eT0iMC4xMCI+CiAgICA8cGF0aCBkPSJNIDY4MCA1NDAgTCA5MjAgNTQwIEwgOTIwIDE0MCBMIDExNjAgMTQwIgogICAgICBmaWxsPSJub25lIiBzdHJva2U9IiNGRUZDRUUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPC9nPgoKICA8IS0tIExlZnQgY29udGVudCAtLT4KICA8IS0tIERhaWx5IGJhZGdlIC0tPgogIDxyZWN0IHg9IjgwIiB5PSI4MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSIzMiIgcng9IjE2IgogICAgZmlsbD0icmdiYSgzOCw4NCwyNDgsMC4yKSIgc3Ryb2tlPSIjMjY1NEY4IiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1vcGFjaXR5PSIwLjUiLz4KICA8dGV4dCB4PSIxNjAiIHk9IjEwMSIgZm9udC1mYW1pbHk9IidIZWx2ZXRpY2EgTmV1ZScsQXJpYWwsc2Fucy1zZXJpZiIKICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNBNEMyRkUiCiAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+REFJTFkgR0FNRTwvdGV4dD4KCiAgPCEtLSBMb2dvIC0tPgogIDx0ZXh0IHg9IjgwIiB5PSIyNDAiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjgwMCIgbGV0dGVyLXNwYWNpbmc9Ii01IgogICAgZmlsbD0idXJsKCN0aXRsZWdyYWQpIj5DdXJ2bGU8L3RleHQ+CgogIDwhLS0gVGFnbGluZSAtLT4KICA8dGV4dCB4PSI4MiIgeT0iMjk4IiBmb250LWZhbWlseT0iJ0hlbHZldGljYSBOZXVlJyxBcmlhbCxzYW5zLXNlcmlmIgogICAgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI0ZFRkNFRSIgb3BhY2l0eT0iMC41NSIKICAgIGxldHRlci1zcGFjaW5nPSIwLjMiPk1hdGNoIHRoZSBlYXNpbmcgY3VydmUuIE5ldyBwdXp6bGUgZXZlcnkgZGF5LjwvdGV4dD4KCiAgPCEtLSBUaHJlZSB0eXBlIHBpbGxzIC0tPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDgyLCAzNjApIj4KICAgIDwhLS0gQmV6aWVyIC0tPgogICAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9InJnYmEoMzgsODQsMjQ4LDAuMikiIHN0cm9rZT0icmdiYSgzOCw4NCwyNDgsMC41KSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8dGV4dCB4PSI2MCIgeT0iMjUiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNBNEMyRkUiCiAgICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxLjUiPkJFWklFUjwvdGV4dD4KCiAgICA8IS0tIFNwcmluZyAtLT4KICAgIDxyZWN0IHg9IjEzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9InJnYmEoOTMsMjAyLDE2NSwwLjE1KSIgc3Ryb2tlPSJyZ2JhKDkzLDIwMiwxNjUsMC40KSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8dGV4dCB4PSIxOTYiIHk9IjI1IiBmb250LWZhbWlseT0iJ0hlbHZldGljYSBOZXVlJyxBcmlhbCxzYW5zLXNlcmlmIgogICAgICBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNURDQUE1IgogICAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMS41Ij5TUFJJTkc8L3RleHQ+CgogICAgPCEtLSBTdGVwIC0tPgogICAgPHJlY3QgeD0iMjcyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0icmdiYSgyNDUsMTY2LDM1LDAuMTUpIiBzdHJva2U9InJnYmEoMjQ1LDE2NiwzNSwwLjQpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDx0ZXh0IHg9IjMyMiIgeT0iMjUiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNGNUE2MjMiCiAgICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxLjUiPlNURVA8L3RleHQ+CiAgPC9nPgoKICA8IS0tIExlYWRlcmJvYXJkIHN0YXQgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODIsIDQ2MCkiPgogICAgPHRleHQgZm9udC1mYW1pbHk9IidIZWx2ZXRpY2EgTmV1ZScsQXJpYWwsc2Fucy1zZXJpZiIKICAgICAgZm9udC1zaXplPSIxNCIgZmlsbD0iI0ZFRkNFRSIgb3BhY2l0eT0iMC4zNSIgbGV0dGVyLXNwYWNpbmc9IjEiPgogICAgICA2IFJPVU5EUyAgwrcgIDMgQ1VSVkUgVFlQRVMgIMK3ICBHTE9CQUwgTEVBREVSQk9BUkQKICAgIDwvdGV4dD4KICA8L2c+CgogIDwhLS0gQm90dG9tIGFjY2VudCBsaW5lIC0tPgogIDxyZWN0IHg9IjgwIiB5PSI1NjAiIHdpZHRoPSI0NDAiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9InVybCgjY3VydmdyYWQpIiBvcGFjaXR5PSIwLjYiLz4KCiAgPCEtLSBTaXRlIFVSTCAtLT4KICA8dGV4dCB4PSI4MiIgeT0iNjAwIiBmb250LWZhbWlseT0iJ0NvdXJpZXIgTmV3Jyxtb25vc3BhY2UiCiAgICBmb250LXNpemU9IjE2IiBmaWxsPSIjQTRDMkZFIiBvcGFjaXR5PSIwLjQ1IiBsZXR0ZXItc3BhY2luZz0iMSI+ZW1pbGlvbW90aW9uLmNvbS9jdXJ2bGU8L3RleHQ+Cjwvc3ZnPg=="/>
+<meta property="og:image:width" content="1200"/>
+<meta property="og:image:height" content="630"/>
+<meta property="og:site_name" content="Curvle"/>
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:url" content="https://www.emiliomotion.com/curvle"/>
+<meta name="twitter:title" content="Curvle — Daily Easing Curve Challenge"/>
+<meta name="twitter:description" content="Curvle is the daily easing curve challenge for motion designers and animators. Watch an animation, match its speed curve using bezier handles, spring controls, or step editors. 6 rounds, new puzzle every day, global leaderboard."/>
+<meta name="twitter:image" content="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMjAwIiBoZWlnaHQ9IjYzMCIgdmlld0JveD0iMCAwIDEyMDAgNjMwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzFEMUQxRSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMxNDE0MjgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9InRpdGxlZ3JhZCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjQTRDMkZFIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZFRkNFRSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iY3VydmdyYWQiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIwIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzI2NTRGOCIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNBNEMyRkUiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgPC9kZWZzPgoKICA8IS0tIEJhY2tncm91bmQgLS0+CiAgPHJlY3Qgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjMwIiBmaWxsPSJ1cmwoI2JnKSIvPgoKICA8IS0tIFN1YnRsZSBncmlkIC0tPgogIDxnIG9wYWNpdHk9IjAuMDQiIHN0cm9rZT0iI0E0QzJGRSIgc3Ryb2tlLXdpZHRoPSIxIj4KICAgIDxsaW5lIHgxPSIwIiB5MT0iMTA1IiB4Mj0iMTIwMCIgeTI9IjEwNSIvPgogICAgPGxpbmUgeDE9IjAiIHkxPSIyMTAiIHgyPSIxMjAwIiB5Mj0iMjEwIi8+CiAgICA8bGluZSB4MT0iMCIgeTE9IjMxNSIgeDI9IjEyMDAiIHkyPSIzMTUiLz4KICAgIDxsaW5lIHgxPSIwIiB5MT0iNDIwIiB4Mj0iMTIwMCIgeTI9IjQyMCIvPgogICAgPGxpbmUgeDE9IjAiIHkxPSI1MjUiIHgyPSIxMjAwIiB5Mj0iNTI1Ii8+CiAgICA8bGluZSB4MT0iMjAwIiB5MT0iMCIgeDI9IjIwMCIgeTI9IjYzMCIvPgogICAgPGxpbmUgeDE9IjQwMCIgeTE9IjAiIHgyPSI0MDAiIHkyPSI2MzAiLz4KICAgIDxsaW5lIHgxPSI2MDAiIHkxPSIwIiB4Mj0iNjAwIiB5Mj0iNjMwIi8+CiAgICA8bGluZSB4MT0iODAwIiB5MT0iMCIgeDI9IjgwMCIgeTI9IjYzMCIvPgogICAgPGxpbmUgeDE9IjEwMDAiIHkxPSIwIiB4Mj0iMTAwMCIgeTI9IjYzMCIvPgogIDwvZz4KCiAgPCEtLSBCYWNrZ3JvdW5kIGdsb3cgYmxvYnMgLS0+CiAgPGNpcmNsZSBjeD0iMjAwIiBjeT0iNTAwIiByPSIyODAiIGZpbGw9IiMyNjU0RjgiIG9wYWNpdHk9IjAuMDciLz4KICA8Y2lyY2xlIGN4PSIxMDUwIiBjeT0iMTUwIiByPSIyMjAiIGZpbGw9IiMyODNEQTYiIG9wYWNpdHk9IjAuMDkiLz4KCiAgPCEtLSBUaHJlZSBjdXJ2ZSBwcmV2aWV3cyDigJQgZGVjb3JhdGl2ZSwgcmlnaHQgc2lkZSAtLT4KICA8IS0tIEVhc2Ugb3V0IGJlemllciAtLT4KICA8ZyBvcGFjaXR5PSIwLjE4Ij4KICAgIDxwYXRoIGQ9Ik0gNjgwIDU0MCBDIDcyMCA1NDAgNzQwIDE0MCAxMTYwIDE0MCIKICAgICAgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjQTRDMkZFIiBzdHJva2Utd2lkdGg9IjMiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwvZz4KICA8IS0tIFNwcmluZyBvdmVyc2hvb3QgLS0+CiAgPGcgb3BhY2l0eT0iMC4xMyI+CiAgICA8cGF0aCBkPSJNIDY4MCA1NDAgQyA3OTAgNTQwIDgxMCA2MCA5MDAgMTQwIEMgOTcwIDIwMCA5ODAgMTAwIDEwMTAgMTMwIEMgMTA0MCAxNTUgMTA1MCAxNDAgMTE2MCAxNDAiCiAgICAgIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzI2NTRGOCIgc3Ryb2tlLXdpZHRoPSIyLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDwvZz4KICA8IS0tIFN0ZXAgLS0+CiAgPGcgb3BhY2l0eT0iMC4xMCI+CiAgICA8cGF0aCBkPSJNIDY4MCA1NDAgTCA5MjAgNTQwIEwgOTIwIDE0MCBMIDExNjAgMTQwIgogICAgICBmaWxsPSJub25lIiBzdHJva2U9IiNGRUZDRUUiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPC9nPgoKICA8IS0tIExlZnQgY29udGVudCAtLT4KICA8IS0tIERhaWx5IGJhZGdlIC0tPgogIDxyZWN0IHg9IjgwIiB5PSI4MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSIzMiIgcng9IjE2IgogICAgZmlsbD0icmdiYSgzOCw4NCwyNDgsMC4yKSIgc3Ryb2tlPSIjMjY1NEY4IiBzdHJva2Utd2lkdGg9IjEiIHN0cm9rZS1vcGFjaXR5PSIwLjUiLz4KICA8dGV4dCB4PSIxNjAiIHk9IjEwMSIgZm9udC1mYW1pbHk9IidIZWx2ZXRpY2EgTmV1ZScsQXJpYWwsc2Fucy1zZXJpZiIKICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiNBNEMyRkUiCiAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+REFJTFkgR0FNRTwvdGV4dD4KCiAgPCEtLSBMb2dvIC0tPgogIDx0ZXh0IHg9IjgwIiB5PSIyNDAiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjgwMCIgbGV0dGVyLXNwYWNpbmc9Ii01IgogICAgZmlsbD0idXJsKCN0aXRsZWdyYWQpIj5DdXJ2bGU8L3RleHQ+CgogIDwhLS0gVGFnbGluZSAtLT4KICA8dGV4dCB4PSI4MiIgeT0iMjk4IiBmb250LWZhbWlseT0iJ0hlbHZldGljYSBOZXVlJyxBcmlhbCxzYW5zLXNlcmlmIgogICAgZm9udC1zaXplPSIyNCIgZm9udC13ZWlnaHQ9IjQwMCIgZmlsbD0iI0ZFRkNFRSIgb3BhY2l0eT0iMC41NSIKICAgIGxldHRlci1zcGFjaW5nPSIwLjMiPk1hdGNoIHRoZSBlYXNpbmcgY3VydmUuIE5ldyBwdXp6bGUgZXZlcnkgZGF5LjwvdGV4dD4KCiAgPCEtLSBUaHJlZSB0eXBlIHBpbGxzIC0tPgogIDxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDgyLCAzNjApIj4KICAgIDwhLS0gQmV6aWVyIC0tPgogICAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9InJnYmEoMzgsODQsMjQ4LDAuMikiIHN0cm9rZT0icmdiYSgzOCw4NCwyNDgsMC41KSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8dGV4dCB4PSI2MCIgeT0iMjUiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNBNEMyRkUiCiAgICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxLjUiPkJFWklFUjwvdGV4dD4KCiAgICA8IS0tIFNwcmluZyAtLT4KICAgIDxyZWN0IHg9IjEzNiIgd2lkdGg9IjEyMCIgaGVpZ2h0PSI0MCIgcng9IjgiIGZpbGw9InJnYmEoOTMsMjAyLDE2NSwwLjE1KSIgc3Ryb2tlPSJyZ2JhKDkzLDIwMiwxNjUsMC40KSIgc3Ryb2tlLXdpZHRoPSIxIi8+CiAgICA8dGV4dCB4PSIxOTYiIHk9IjI1IiBmb250LWZhbWlseT0iJ0hlbHZldGljYSBOZXVlJyxBcmlhbCxzYW5zLXNlcmlmIgogICAgICBmb250LXNpemU9IjEzIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjNURDQUE1IgogICAgICB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMS41Ij5TUFJJTkc8L3RleHQ+CgogICAgPCEtLSBTdGVwIC0tPgogICAgPHJlY3QgeD0iMjcyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjQwIiByeD0iOCIgZmlsbD0icmdiYSgyNDUsMTY2LDM1LDAuMTUpIiBzdHJva2U9InJnYmEoMjQ1LDE2NiwzNSwwLjQpIiBzdHJva2Utd2lkdGg9IjEiLz4KICAgIDx0ZXh0IHg9IjMyMiIgeT0iMjUiIGZvbnQtZmFtaWx5PSInSGVsdmV0aWNhIE5ldWUnLEFyaWFsLHNhbnMtc2VyaWYiCiAgICAgIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNGNUE2MjMiCiAgICAgIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxLjUiPlNURVA8L3RleHQ+CiAgPC9nPgoKICA8IS0tIExlYWRlcmJvYXJkIHN0YXQgLS0+CiAgPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoODIsIDQ2MCkiPgogICAgPHRleHQgZm9udC1mYW1pbHk9IidIZWx2ZXRpY2EgTmV1ZScsQXJpYWwsc2Fucy1zZXJpZiIKICAgICAgZm9udC1zaXplPSIxNCIgZmlsbD0iI0ZFRkNFRSIgb3BhY2l0eT0iMC4zNSIgbGV0dGVyLXNwYWNpbmc9IjEiPgogICAgICA2IFJPVU5EUyAgwrcgIDMgQ1VSVkUgVFlQRVMgIMK3ICBHTE9CQUwgTEVBREVSQk9BUkQKICAgIDwvdGV4dD4KICA8L2c+CgogIDwhLS0gQm90dG9tIGFjY2VudCBsaW5lIC0tPgogIDxyZWN0IHg9IjgwIiB5PSI1NjAiIHdpZHRoPSI0NDAiIGhlaWdodD0iMiIgcng9IjEiIGZpbGw9InVybCgjY3VydmdyYWQpIiBvcGFjaXR5PSIwLjYiLz4KCiAgPCEtLSBTaXRlIFVSTCAtLT4KICA8dGV4dCB4PSI4MiIgeT0iNjAwIiBmb250LWZhbWlseT0iJ0NvdXJpZXIgTmV3Jyxtb25vc3BhY2UiCiAgICBmb250LXNpemU9IjE2IiBmaWxsPSIjQTRDMkZFIiBvcGFjaXR5PSIwLjQ1IiBsZXR0ZXItc3BhY2luZz0iMSI+ZW1pbGlvbW90aW9uLmNvbS9jdXJ2bGU8L3RleHQ+Cjwvc3ZnPg=="/>
+<meta name="twitter:creator" content="@emiliomotion"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    /* Brand palette */
+    --blue:       #2654F8;
+    --blue-deep:  #283DA6;
+    --blue-light: #A4C2FE;
+    --dark:       #1D1D1E;
+    --cream:      #FEFCEE;
+    --mid:        #616160;
+
+    /* Semantic mappings */
+    --bg:         var(--dark);
+    --card:       rgba(38,84,248,0.07);
+    --card-hi:    rgba(38,84,248,0.13);
+    --border:     rgba(164,194,254,0.12);
+    --border2:    rgba(164,194,254,0.22);
+    --txt:        var(--cream);
+    --txt2:       rgba(254,252,238,0.55);
+    --txt3:       rgba(254,252,238,0.30);
+    --accent:     var(--blue);
+    --accent2:    var(--blue-deep);
+    --hi:         var(--blue-light);
+    --amber:      #F5A623;
+    --teal:       #5DCAA5;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--dark);
+    color: var(--txt);
+    font-family: 'Space Grotesk', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ── Parallax background ── */
+  #parallax-bg {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .px-shape {
+    position: absolute;
+    will-change: transform;
+    opacity: 0;
+  }
+  /* circles */
+  .px-circle {
+    border-radius: 50%;
+    border: 1px solid;
+  }
+  /* lines */
+  .px-line {
+    height: 1px;
+    transform-origin: left center;
+  }
+  /* dots */
+  .px-dot {
+    border-radius: 50%;
+  }
+  /* diamond */
+  .px-diamond {
+    transform-origin: center center;
+  }
+
+  #app {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 660px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .panel--narrow { max-width: 420px; }
+  .panel--mid    { max-width: 500px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--border2); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border2); border-radius: 10px;
+    padding: 8px 16px; background: transparent; color: var(--txt2);
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s, box-shadow 0.15s;
+    letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .btn:hover {
+    background: rgba(164,194,254,0.08);
+    color: var(--txt);
+    border-color: rgba(164,194,254,0.35);
+    box-shadow: 0 0 16px rgba(38,84,248,0.15);
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.30; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  .btn--primary {
+    background: var(--blue);
+    border-color: var(--blue-deep);
+    color: var(--cream);
+    box-shadow: 0 0 0 rgba(38,84,248,0);
+    transition: background 0.15s, box-shadow 0.2s, transform 0.1s;
+  }
+  .btn--primary:hover {
+    background: #3a68ff;
+    box-shadow: 0 0 28px rgba(38,84,248,0.45), 0 0 8px rgba(164,194,254,0.2);
+    color: #fff;
+    border-color: var(--blue);
+  }
+  .btn--success { background: #1a7a5e; border-color: #0f5a44; color: #fff; }
+  .btn--full { width: 100%; }
+  .btn--lg { font-size: 14px; padding: 12px 24px; }
+
+  /* ── Typography ── */
+  .label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--txt3); margin-bottom: 8px;
+  }
+
+  .mode-badge {
+    display: inline-block; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 6px; margin-bottom: 10px;
+    border: 1px solid;
+  }
+  .mode-badge--bezier {
+    background: rgba(38,84,248,0.15);
+    color: var(--blue-light);
+    border-color: rgba(38,84,248,0.3);
+  }
+  .mode-badge--spring {
+    background: rgba(93,202,165,0.12);
+    color: var(--teal);
+    border-color: rgba(93,202,165,0.25);
+  }
+  .mode-badge--step {
+    background: rgba(245,166,35,0.12);
+    color: var(--amber);
+    border-color: rgba(245,166,35,0.25);
+  }
+
+  /* ── Inputs ── */
+  input[type=text], input[type=email] {
+    width: 100%;
+    background: rgba(38,84,248,0.08);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; color: var(--txt);
+    font-family: inherit; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type=text]:focus, input[type=email]:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(38,84,248,0.2);
+  }
+  input[type=range] {
+    flex: 1; accent-color: var(--blue);
+    height: 4px; cursor: pointer;
+  }
+
+  select {
+    background: rgba(38,84,248,0.1);
+    border: 1px solid var(--border2);
+    border-radius: 8px; padding: 6px 10px; font-size: 12px;
+    color: var(--txt); font-family: inherit; cursor: pointer; outline: none;
+    transition: border-color 0.15s;
+  }
+  select:focus { border-color: var(--blue); }
+  select option { background: #1D1D1E; }
+
+  /* ── Progress bar ── */
+  .progress-bar { display: flex; gap: 5px; margin-bottom: 4px; }
+  .progress-seg {
+    height: 3px; flex: 1; border-radius: 2px;
+    background: rgba(164,194,254,0.10);
+    transition: background 0.4s;
+  }
+  .progress-seg.done    { background: var(--blue); }
+  .progress-seg.current { background: var(--blue-light); }
+
+  /* ── Anim stage ── */
+  .anim-stage {
+    width: 100%; min-width: 200px; height: 64px; position: relative;
+    background: rgba(38,84,248,0.06);
+    border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+    margin-bottom: 10px;
+  }
+  /* subtle grid lines on stage */
+  .anim-stage::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(164,194,254,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(164,194,254,0.04) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  .anim-dot {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cream);
+    box-shadow: 0 0 0 2px var(--blue), 0 0 14px rgba(38,84,248,0.7);
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 2;
+  }
+
+  /* ── Curve SVG editor ── */
+  .curve-wrap { position: relative; touch-action: none; cursor: crosshair; }
+  .curve-wrap svg { width: 100%; display: block; }
+  .handle { cursor: grab; }
+  .handle:active { cursor: grabbing; }
+
+  /* ── Slider row ── */
+  .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .slider-row .sl-label { font-size: 12px; color: var(--txt2); min-width: 64px; }
+  .slider-row .sl-val {
+    font-size: 12px; font-weight: 700; color: var(--blue-light);
+    min-width: 34px; text-align: right;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── Two-col game grid ── */
+  .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 520px) { .game-grid { grid-template-columns: 1fr; } }
+
+  /* ── Replay pips ── */
+  .pips { display: flex; gap: 5px; align-items: center; }
+  .pip {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--blue); transition: background 0.3s, transform 0.2s;
+    box-shadow: 0 0 6px rgba(38,84,248,0.5);
+  }
+  .pip.used {
+    background: rgba(164,194,254,0.12);
+    box-shadow: none;
+    transform: scale(0.8);
+  }
+
+  /* ── Leaderboard ── */
+  .lb-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 6px;
+    border-bottom: 1px solid rgba(164,194,254,0.06);
+    font-size: 13px;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .lb-row:hover { background: rgba(38,84,248,0.06); }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { width: 28px; text-align: center; font-size: 14px; }
+  .lb-name { flex: 1; color: var(--txt); }
+  .lb-score {
+    font-weight: 700; color: var(--cream);
+    font-family: 'Space Mono', monospace; font-size: 14px;
+  }
+  .lb-you {
+    font-size: 10px;
+    background: rgba(38,84,248,0.25);
+    color: var(--blue-light);
+    padding: 1px 7px; border-radius: 5px;
+    margin-left: 6px; font-weight: 700;
+    border: 1px solid rgba(38,84,248,0.4);
+  }
+  .lb-row.is-you { background: rgba(38,84,248,0.1); }
+  .lb-date { font-size: 11px; color: var(--txt3); margin-left: 4px; font-family: 'Space Mono', monospace; }
+
+  /* ── Share card ── */
+  .share-preview {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px; line-height: 1.9;
+    color: var(--txt);
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ── Round score tiles ── */
+  .score-tiles {
+    display: flex; gap: 7px; justify-content: center; flex-wrap: wrap;
+    margin: 14px 0;
+  }
+  .score-tile {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    border: 1px solid transparent;
+    transition: transform 0.2s;
+  }
+  .score-tile:hover { transform: scale(1.08); }
+  .score-tile .tile-r { font-size: 8px; font-weight: 400; opacity: 0.45; margin-bottom: 2px; font-family: 'Space Grotesk', sans-serif; }
+
+  /* ── Logo / intro ── */
+  .logo {
+    font-size: 52px; font-weight: 700; letter-spacing: -0.05em;
+    color: var(--cream);
+    line-height: 1;
+    position: relative;
+    display: inline-block;
+  }
+  .logo span {
+    background: linear-gradient(90deg, var(--blue-light), var(--blue), var(--blue-light));
+    background-size: 200% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: logo-shimmer 3s linear infinite;
+  }
+  @keyframes logo-shimmer {
+    0%   { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .tagline { font-size: 14px; color: var(--txt2); margin-top: 10px; line-height: 1.7; }
+
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .empty-state {
+    text-align: center; padding: 28px 0;
+    font-size: 13px; color: var(--txt3);
+  }
+
+  /* ── Intro curve preview cards ── */
+  .intro-curve-card {
+    padding: 12px 14px;
+    opacity: 0.85;
+    text-align: left;
+    transition: opacity 0.2s, transform 0.2s, border-color 0.2s;
+    cursor: default;
+  }
+  .intro-curve-card:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    border-color: rgba(164,194,254,0.3);
+  }
+
+  /* ── Score number ── */
+  .score-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 52px; font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--cream);
+    line-height: 1;
+  }
+
+  /* ── Glowing divider ── */
+  .glow-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(38,84,248,0.5), var(--blue-light), rgba(38,84,248,0.5), transparent);
+    margin: 4px 0;
+    animation: glow-pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+
+  /* ── Config note ── */
+  .config-note {
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.2);
+    border-radius: 10px; padding: 12px 14px;
+    font-size: 12px; color: var(--amber); line-height: 1.6;
+  }
+</style>
 </head>
-
 <body>
-  <div id="parallax-bg" aria-hidden="true"></div>
-  <div id="app">
+<div id="parallax-bg" aria-hidden="true"></div>
+<div id="app">
 
-    <!-- ═══ INTRO ═══ -->
-    <div id="screen-intro" class="screen active">
-      <div class="panel panel--narrow" style="text-align:center; gap:18px;">
-        <div>
-          <div
-            style="font-size:10px;letter-spacing:0.16em;color:var(--blue-light);opacity:0.6;text-transform:uppercase;margin-bottom:12px;font-family:'Space Mono',monospace;"
-            id="intro-date"></div>
-          <div class="logo"><span>Curvle</span></div>
-          <p class="tagline">Watch an animation. Match its speed curve.<br>6 rounds · new puzzle every day.</p>
-        </div>
-
-        <div style="display:flex;justify-content:center;gap:12px;">
-          <div class="card intro-curve-card">
-            <div
-              style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue-light);margin-bottom:6px;">
-              Bezier</div>
-            <svg viewBox="0 0 70 50" width="70" height="50" id="intro-bezier-svg"></svg>
-          </div>
-          <div class="card intro-curve-card">
-            <div
-              style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
-              Spring</div>
-            <svg viewBox="0 0 70 50" width="70" height="50" id="intro-spring-svg"></svg>
-          </div>
-          <div class="card intro-curve-card">
-            <div
-              style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">
-              Step</div>
-            <svg viewBox="0 0 70 50" width="70" height="50" id="intro-step-svg"></svg>
-          </div>
-        </div>
-
-        <div id="already-played-msg" style="display:none;">
-          <div class="card" style="background:rgba(38,84,248,0.1);border-color:rgba(38,84,248,0.3);">
-            <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">
-              You already played today!<br>
-              Score: <strong style="color:var(--cream);font-family:'Space Mono',monospace;" id="already-score"></strong>
-            </div>
-            <button class="btn btn--primary" onclick="openLeaderboard()">View leaderboard</button>
-          </div>
-        </div>
-
-        <div id="play-form">
-          <input type="text" id="name-input" placeholder="Your name (for the leaderboard)" maxlength="24"
-            style="text-align:center;margin-bottom:10px;" />
-          <button class="btn btn--primary btn--full btn--lg" onclick="startGame()">Play today's challenge</button>
-        </div>
-
-        <button class="btn" style="font-size:12px;align-self:center;" onclick="openLeaderboard()">Leaderboard</button>
+  <!-- ═══ INTRO ═══ -->
+  <div id="screen-intro" class="screen active">
+    <div class="panel panel--narrow" style="text-align:center; gap:18px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.16em;color:var(--blue-light);opacity:0.6;text-transform:uppercase;margin-bottom:12px;font-family:'Space Mono',monospace;" id="intro-date"></div>
+        <div class="logo"><span>Curvle</span></div>
+        <p class="tagline">Watch an animation. Match its speed curve.<br>6 rounds · new puzzle every day.</p>
       </div>
-    </div>
 
-    <!-- ═══ GAME ═══ -->
-    <div id="screen-game" class="screen">
-      <div class="panel">
-        <div class="row" style="justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:16px;font-weight:700;letter-spacing:-0.03em;color:var(--cream);">Curvle</div>
-            <div
-              style="font-size:11px;color:var(--blue-light);opacity:0.55;font-family:'Space Mono',monospace;letter-spacing:0.03em;"
-              id="game-round-label"></div>
-          </div>
-          <div style="font-size:12px;color:var(--txt2);font-family:'Space Mono',monospace;">Total: <span
-              style="font-weight:700;color:var(--blue-light);" id="game-total">0</span></div>
+      <div style="display:flex;justify-content:center;gap:12px;">
+        <div class="card intro-curve-card">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--blue-light);margin-bottom:6px;">Bezier</div>
+          <svg viewBox="0 0 70 50" width="70" height="50" id="intro-bezier-svg"></svg>
         </div>
-
-        <div class="progress-bar" id="progress-bar"></div>
-
-        <div class="game-grid">
-          <!-- Left: animation -->
-          <div class="card">
-            <div class="label">Animation</div>
-            <div class="anim-stage">
-              <div class="anim-dot" id="anim-dot"></div>
-            </div>
-            <div class="row" style="margin-bottom:8px;">
-              <button class="btn" id="btn-preview" onclick="doPreview()">Preview (free)</button>
-              <div class="pips" id="pips">
-                <div class="pip" id="pip0"></div>
-                <div class="pip" id="pip1"></div>
-                <div class="pip" id="pip2"></div>
-              </div>
-              <button class="btn" id="btn-replay" onclick="doReplay()" disabled style="margin-left:auto;">Replay
-                −5%</button>
-            </div>
-            <div style="font-size:11px;color:var(--txt3);">
-              Max this round: <strong style="color:var(--blue-light);font-family:'Space Mono',monospace;"
-                id="max-label">100</strong> pts
-            </div>
-          </div>
-
-          <!-- Right: editor -->
-          <div class="card">
-            <div class="label">Your curve</div>
-            <div id="mode-badge-wrap"></div>
-            <div id="editor-area"></div>
-            <button class="btn" style="font-size:11px;padding:4px 10px;margin-top:8px;"
-              onclick="resetEditor()">Reset</button>
-          </div>
+        <div class="card intro-curve-card">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Spring</div>
+          <svg viewBox="0 0 70 50" width="70" height="50" id="intro-spring-svg"></svg>
         </div>
-
-        <div class="row">
-          <button class="btn btn--primary btn--lg" id="btn-submit" onclick="submitGuess()">Submit guess</button>
-          <span style="font-size:12px;color:var(--blue-light);opacity:0.5;" id="submit-hint">Preview the animation
-            first</span>
+        <div class="card intro-curve-card">
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;">Step</div>
+          <svg viewBox="0 0 70 50" width="70" height="50" id="intro-step-svg"></svg>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ RESULT ═══ -->
-    <div id="screen-result" class="screen">
-      <div class="panel panel--mid" style="text-align:center;">
-        <div class="card">
-          <div class="score-num" id="result-score"></div>
-          <div class="glow-line" style="margin:10px 0 8px;"></div>
-          <div style="font-size:13px;color:var(--txt2);" id="result-label"></div>
-
-          <div style="display:flex;justify-content:center;gap:22px;margin-top:20px;">
-            <div>
-              <div class="label" style="text-align:center;">Yours</div>
-              <div class="card" style="padding:10px;display:inline-block;">
-                <svg id="result-user-svg" viewBox="0 0 90 70" width="90" height="70"></svg>
-              </div>
-            </div>
-            <div>
-              <div class="label" style="text-align:center;">Target</div>
-              <div class="card" style="padding:10px;display:inline-block;">
-                <svg id="result-target-svg" viewBox="0 0 90 70" width="90" height="70"></svg>
-              </div>
-            </div>
+      <div id="already-played-msg" style="display:none;">
+        <div class="card" style="background:rgba(38,84,248,0.1);border-color:rgba(38,84,248,0.3);">
+          <div style="font-size:13px;color:var(--txt2);margin-bottom:10px;">
+            You already played today!<br>
+            Score: <strong style="color:var(--cream);font-family:'Space Mono',monospace;" id="already-score"></strong>
           </div>
-
-          <div class="progress-bar" style="margin-top:20px;" id="result-progress"></div>
-          <button class="btn btn--primary btn--full btn--lg" style="margin-top:16px;" id="btn-next"
-            onclick="nextRound()">Next round →</button>
+          <button class="btn btn--primary" onclick="openLeaderboard()">View leaderboard</button>
         </div>
       </div>
-    </div>
 
-    <!-- ═══ FINAL ═══ -->
-    <div id="screen-final" class="screen">
-      <div class="panel panel--narrow">
-        <div class="card" style="text-align:center;">
-          <div
-            style="font-size:10px;letter-spacing:0.15em;color:var(--blue-light);opacity:0.6;text-transform:uppercase;margin-bottom:12px;font-family:'Space Mono',monospace;"
-            id="final-date"></div>
-          <div class="score-num"
-            style="background:linear-gradient(135deg, var(--blue-light), var(--cream));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"
-            id="final-score"></div>
-          <div style="font-size:13px;color:var(--txt2);margin-top:4px;" id="final-grade"></div>
-          <div class="score-tiles" id="score-tiles"></div>
-        </div>
-
-        <div class="card" style="background:rgba(255,255,255,0.025);">
-          <div class="label">Share your results</div>
-          <div class="share-preview" id="share-preview"></div>
-          <button class="btn btn--primary btn--full" id="btn-share" onclick="handleShare()">
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
-              <rect x="5" y="1" width="6" height="7" rx="1" stroke="white" stroke-width="1.5" />
-              <path d="M3 8v6h10V8" stroke="white" stroke-width="1.5" stroke-linecap="round" />
-            </svg>
-            Copy results
-          </button>
-        </div>
-
-        <div class="row" style="justify-content:center;">
-          <button class="btn" onclick="openLeaderboard()">Leaderboard</button>
-          <button class="btn" onclick="showScreen('intro')">Play again</button>
-        </div>
+      <div id="play-form">
+        <input type="text" id="name-input" placeholder="Your name (for the leaderboard)" maxlength="24" style="text-align:center;margin-bottom:10px;"/>
+        <button class="btn btn--primary btn--full btn--lg" onclick="startGame()">Play today's challenge</button>
       </div>
-    </div>
 
-    <!-- ═══ LEADERBOARD ═══ -->
-    <div id="screen-leaderboard" class="screen">
-      <div class="panel panel--narrow">
-        <div class="row" style="justify-content:space-between;align-items:center;">
-          <div style="font-size:20px;font-weight:700;letter-spacing:-0.04em;color:var(--cream);">Leaderboard</div>
-          <button class="btn" onclick="showScreen('intro')">← Back</button>
-        </div>
-        <div class="card">
-          <div id="lb-list">
-            <div class="empty-state">Loading...</div>
-          </div>
-        </div>
-        <div
-          style="font-size:10px;color:var(--txt3);text-align:center;font-family:'Space Mono',monospace;letter-spacing:0.05em;">
-          Daily challenge · Top 20 · Shared globally</div>
-      </div>
+      <button class="btn" style="font-size:12px;align-self:center;" onclick="openLeaderboard()">Leaderboard</button>
     </div>
-
-    <!-- ═══ ADMIN ═══ -->
-    <div id="screen-admin" class="screen">
-      <div class="panel panel--narrow">
-        <div class="row" style="justify-content:space-between;align-items:center;">
-          <div style="font-size:20px;font-weight:700;letter-spacing:-0.04em;color:var(--cream);">Admin</div>
-          <button class="btn" onclick="showScreen('intro')">← Back</button>
-        </div>
-        <div class="card" style="font-size:13px;color:var(--txt2);line-height:1.8;">
-          Delete a score from the leaderboard by entering the exact name and date.
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;gap:10px;">
-          <div>
-            <div class="label">Player name (exact)</div>
-            <input type="text" id="admin-name" placeholder="e.g. Emilio" maxlength="24" />
-          </div>
-          <div>
-            <div class="label">Date (YYYY-MM-DD, leave blank for all dates)</div>
-            <input type="text" id="admin-date" placeholder="e.g. 2026-04-08" maxlength="10" />
-          </div>
-          <button class="btn"
-            style="background:rgba(240,112,112,0.15);border-color:rgba(240,112,112,0.3);color:#f07070;"
-            onclick="adminDelete()">Delete score</button>
-          <div id="admin-msg" style="font-size:12px;min-height:18px;"></div>
-        </div>
-        <div class="card" style="display:flex;flex-direction:column;gap:8px;">
-          <div class="label">Current scores</div>
-          <div id="admin-lb-list" style="font-size:12px;"></div>
-          <button class="btn" style="font-size:11px;" onclick="loadAdminScores()">Refresh</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script>
-    // ════════════════════════════════════════════════════════
-    //  SUPABASE CONFIG — paste your values here
-    // ════════════════════════════════════════════════════════
-    const SUPABASE_URL = 'https://yrqtzjvwforyowqyqlru.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlycXR6anZ3Zm9yeW93cXlxbHJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NjA2MzEsImV4cCI6MjA5MTIzNjYzMX0.MwfPtCNa-r1tcb5FMLZ847Fo7pve-_4Law4DmKpx4ng';
-    const SITE_URL = 'curvle.io';
+  <!-- ═══ GAME ═══ -->
+  <div id="screen-game" class="screen">
+    <div class="panel">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:16px;font-weight:700;letter-spacing:-0.03em;color:var(--cream);">Curvle</div>
+          <div style="font-size:11px;color:var(--blue-light);opacity:0.55;font-family:'Space Mono',monospace;letter-spacing:0.03em;" id="game-round-label"></div>
+        </div>
+        <div style="font-size:12px;color:var(--txt2);font-family:'Space Mono',monospace;">Total: <span style="font-weight:700;color:var(--blue-light);" id="game-total">0</span></div>
+      </div>
 
-    // ── Admin delete password (change this to something only you know) ──
-    const ADMIN_PASSWORD = 'curvle-admin-2026';
+      <div class="progress-bar" id="progress-bar"></div>
 
-    // ── Profanity blocklist ──────────────────────────────────────────────
-    // Add any words you want to block. Checked case-insensitively.
-    const BLOCKED_WORDS = [
-      'fuck', 'shit', 'ass', 'bitch', 'cunt', 'dick', 'cock', 'pussy', 'nigger', 'nigga',
-      'faggot', 'fag', 'whore', 'slut', 'bastard', 'piss', 'twat', 'wank', 'bollocks',
-      'asshole', 'arsehole', 'motherfucker', 'retard', 'tranny', 'nazi', 'hitler',
-      'rape', 'rapist', 'pedophile', 'pedo', 'kike', 'chink', 'spic', 'wetback',
-    ];
+      <div class="game-grid">
+        <!-- Left: animation -->
+        <div class="card">
+          <div class="label">Animation</div>
+          <div class="anim-stage"><div class="anim-dot" id="anim-dot"></div></div>
+          <div class="row" style="margin-bottom:8px;">
+            <button class="btn" id="btn-preview" onclick="doPreview()">Preview (free)</button>
+            <div class="pips" id="pips">
+              <div class="pip" id="pip0"></div>
+              <div class="pip" id="pip1"></div>
+              <div class="pip" id="pip2"></div>
+            </div>
+            <button class="btn" id="btn-replay" onclick="doReplay()" disabled style="margin-left:auto;">Replay −5%</button>
+          </div>
+          <div style="font-size:11px;color:var(--txt3);">
+            Max this round: <strong style="color:var(--blue-light);font-family:'Space Mono',monospace;" id="max-label">100</strong> pts
+          </div>
+        </div>
 
-    function sanitizeName(raw) {
-      // Strip non-printable chars and trim
-      let name = raw.replace(/[^ -~]/g, '').trim().slice(0, 24);
-      if (!name) return 'Anonymous';
-      // Check blocklist (whole word and substring match)
-      const lower = name.toLowerCase();
-      for (const word of BLOCKED_WORDS) {
-        if (lower.includes(word)) return null; // null = blocked
-      }
-      return name;
-    }
+        <!-- Right: editor -->
+        <div class="card">
+          <div class="label">Your curve</div>
+          <div id="mode-badge-wrap"></div>
+          <div id="editor-area"></div>
+          <button class="btn" style="font-size:11px;padding:4px 10px;margin-top:8px;" onclick="resetEditor()">Reset</button>
+        </div>
+      </div>
 
-    // ════════════════════════════════════════════════════════
-    //  CURVE POOL
-    // ════════════════════════════════════════════════════════
-    const CURVE_POOL = [
-      { id: 'ease-in', name: 'Ease in', type: 'bezier', cp: [0.55, 0, 1, 0.45] },
-      { id: 'ease-out', name: 'Ease out', type: 'bezier', cp: [0, 0.55, 0.45, 1] },
-      { id: 'ease-in-out', name: 'Ease in-out', type: 'bezier', cp: [0.65, 0, 0.35, 1] },
-      { id: 'linear', name: 'Linear', type: 'bezier', cp: [0.33, 0.33, 0.67, 0.67] },
-      { id: 'overshoot', name: 'Overshoot', type: 'bezier', cp: [0.34, 1.56, 0.64, 1] },
-      { id: 'anticipate', name: 'Anticipate', type: 'bezier', cp: [0.36, 0, 0.66, -0.56] },
-      { id: 'snap-in', name: 'Snap in', type: 'bezier', cp: [0.9, 0, 1, 0.5] },
-      { id: 'decelerate', name: 'Decelerate', type: 'bezier', cp: [0, 0, 0.1, 1] },
-      { id: 'snappy', name: 'Snappy', type: 'bezier', cp: [0.6, 0, 0.4, 1] },
-      { id: 'slow-mid', name: 'Slow middle', type: 'bezier', cp: [0.1, 0.5, 0.9, 0.5] },
-      { id: 'spring-bouncy', name: 'Bouncy spring', type: 'spring', tension: 280, friction: 8 },
-      { id: 'spring-stiff', name: 'Stiff spring', type: 'spring', tension: 400, friction: 28 },
-      { id: 'spring-gentle', name: 'Gentle spring', type: 'spring', tension: 80, friction: 20 },
-      { id: 'spring-normal', name: 'Spring', type: 'spring', tension: 180, friction: 12 },
-      { id: 'step-mid', name: 'Step (mid)', type: 'step', stepAt: 0.5, easeType: 'none' },
-      { id: 'step-early', name: 'Step (early)', type: 'step', stepAt: 0.25, easeType: 'out' },
-      { id: 'step-late', name: 'Step (late)', type: 'step', stepAt: 0.75, easeType: 'in' },
-    ];
+      <div class="row">
+        <button class="btn btn--primary btn--lg" id="btn-submit" onclick="submitGuess()">Submit guess</button>
+        <span style="font-size:12px;color:var(--blue-light);opacity:0.5;" id="submit-hint">Preview the animation first</span>
+      </div>
+    </div>
+  </div>
 
-    // ════════════════════════════════════════════════════════
-    //  CURVE MATH
-    // ════════════════════════════════════════════════════════
-    // CSS cubic-bezier: x1,y1 = handle near start, x2,y2 = handle near end.
-    // X axis = time (0-1), Y axis = value (0-1, can exceed for overshoot).
-    // We must solve: given input time T, find bezier parameter u where Bx(u)=T,
-    // then return By(u). This matches exactly how browsers evaluate cubic-bezier().
-    function evalBezier(T, x1, y1, x2, y2) {
-      // Bx(u) = 3u(1-u)^2*x1 + 3u^2(1-u)*x2 + u^3  (with p0x=0, p3x=1)
-      // By(u) = 3u(1-u)^2*y1 + 3u^2(1-u)*y2 + u^3  (with p0y=0, p3y=1)
-      function Bx(u) { return 3 * u * (1 - u) * (1 - u) * x1 + 3 * u * u * (1 - u) * x2 + u * u * u; }
-      function By(u) { return 3 * u * (1 - u) * (1 - u) * y1 + 3 * u * u * (1 - u) * y2 + u * u * u; }
-      // Edge cases
-      if (T <= 0) return 0;
-      if (T >= 1) return 1;
-      // Binary search for u where Bx(u) == T
-      let lo = 0, hi = 1, u = T;
-      for (let i = 0; i < 32; i++) {
-        const mid = (lo + hi) / 2;
-        const bx = Bx(mid);
-        if (Math.abs(bx - T) < 0.0001) { u = mid; break; }
-        if (bx < T) lo = mid; else hi = mid;
-        u = mid;
-      }
-      return By(u);
-    }
+  <!-- ═══ RESULT ═══ -->
+  <div id="screen-result" class="screen">
+    <div class="panel panel--mid" style="text-align:center;">
+      <div class="card">
+        <div class="score-num" id="result-score"></div>
+        <div class="glow-line" style="margin:10px 0 8px;"></div>
+        <div style="font-size:13px;color:var(--txt2);" id="result-label"></div>
 
-    // Spring physics: tension and friction map to real spring constants.
-    // We scale t (0-1) to a real time range so oscillations are visible.
-    // SPRING_TIME controls how many seconds of spring we show over the animation.
-    const SPRING_TIME = 3.5;
-    function evalSpring(t, tension, friction) {
-      const time = t * SPRING_TIME;
-      const w0 = Math.sqrt(tension);
-      const zeta = friction / (2 * Math.sqrt(tension));
-      if (zeta >= 1) {
-        // Overdamped - no oscillation
-        const r1 = -w0 * (zeta - Math.sqrt(zeta * zeta - 1));
-        const r2 = -w0 * (zeta + Math.sqrt(zeta * zeta - 1));
-        // Solve for coefficients with x(0)=0, x'(0)=0, x(inf)=1
-        const c2 = (r1) / (r1 - r2);
-        const c1 = 1 - c2;
-        return 1 - (c1 * Math.exp(r1 * time) + c2 * Math.exp(r2 * time));
-      }
-      // Underdamped - oscillates
-      const wd = w0 * Math.sqrt(1 - zeta * zeta);
-      const decay = Math.exp(-zeta * w0 * time);
-      const A = 1;
-      const B = (zeta * w0) / wd;
-      return 1 - decay * (A * Math.cos(wd * time) + B * Math.sin(wd * time));
-    }
+        <div style="display:flex;justify-content:center;gap:22px;margin-top:20px;">
+          <div>
+            <div class="label" style="text-align:center;">Yours</div>
+            <div class="card" style="padding:10px;display:inline-block;">
+              <svg id="result-user-svg" viewBox="0 0 90 70" width="90" height="70"></svg>
+            </div>
+          </div>
+          <div>
+            <div class="label" style="text-align:center;">Target</div>
+            <div class="card" style="padding:10px;display:inline-block;">
+              <svg id="result-target-svg" viewBox="0 0 90 70" width="90" height="70"></svg>
+            </div>
+          </div>
+        </div>
 
-    function evalStep(t, stepAt, easeType) {
-      if (t <= 0) return 0;
-      if (t >= 1) return 1;
-      if (t < stepAt) {
-        // Before step: either hold at 0, or ease-in approaching 0
-        return 0;
-      }
-      // After step: jump to 1, then optionally ease
-      const p = (t - stepAt) / (1 - stepAt);
-      if (easeType === 'out') return evalBezier(p, 0, 0.55, 0.45, 1);
-      if (easeType === 'in') return evalBezier(p, 0.55, 0, 1, 0.45);
+        <div class="progress-bar" style="margin-top:20px;" id="result-progress"></div>
+        <button class="btn btn--primary btn--full btn--lg" style="margin-top:16px;" id="btn-next" onclick="nextRound()">Next round →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FINAL ═══ -->
+  <div id="screen-final" class="screen">
+    <div class="panel panel--narrow">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:10px;letter-spacing:0.15em;color:var(--blue-light);opacity:0.6;text-transform:uppercase;margin-bottom:12px;font-family:'Space Mono',monospace;" id="final-date"></div>
+        <div class="score-num" style="background:linear-gradient(135deg, var(--blue-light), var(--cream));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;" id="final-score"></div>
+        <div style="font-size:13px;color:var(--txt2);margin-top:4px;" id="final-grade"></div>
+        <div id="final-streak" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 14px;border-radius:20px;background:rgba(38,84,248,0.12);border:1px solid rgba(38,84,248,0.25);font-size:13px;font-weight:600;color:var(--blue-light);font-family:'Space Mono',monospace;"></div>
+        <div class="score-tiles" id="score-tiles"></div>
+      </div>
+
+      <div class="card" style="background:rgba(255,255,255,0.025);">
+        <div class="label">Share your results</div>
+        <div class="share-preview" id="share-preview"></div>
+        <button class="btn btn--primary btn--full" id="btn-share" onclick="handleShare()">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="6" height="7" rx="1" stroke="white" stroke-width="1.5"/><path d="M3 8v6h10V8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Copy results
+        </button>
+      </div>
+
+      <div class="row" style="justify-content:center;">
+        <button class="btn" onclick="openLeaderboard()">Leaderboard</button>
+        <button class="btn" onclick="showScreen('intro')">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LEADERBOARD ═══ -->
+  <div id="screen-leaderboard" class="screen">
+    <div class="panel panel--narrow">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <div style="font-size:20px;font-weight:700;letter-spacing:-0.04em;color:var(--cream);">Leaderboard</div>
+        <button class="btn" onclick="showScreen('intro')">← Back</button>
+      </div>
+      <div class="card">
+        <div id="lb-list"><div class="empty-state">Loading...</div></div>
+      </div>
+      <div style="font-size:10px;color:var(--txt3);text-align:center;font-family:'Space Mono',monospace;letter-spacing:0.05em;">Daily challenge · Top 20 · Shared globally</div>
+    </div>
+  </div>
+
+  <!-- ═══ ADMIN ═══ -->
+  <div id="screen-admin" class="screen">
+    <div class="panel panel--narrow">
+      <div class="row" style="justify-content:space-between;align-items:center;">
+        <div style="font-size:20px;font-weight:700;letter-spacing:-0.04em;color:var(--cream);">Admin</div>
+        <button class="btn" onclick="showScreen('intro')">← Back</button>
+      </div>
+      <div class="card" style="font-size:13px;color:var(--txt2);line-height:1.8;">
+        Delete a score from the leaderboard by entering the exact name and date.
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div class="label">Player name (exact)</div>
+          <input type="text" id="admin-name" placeholder="e.g. Emilio" maxlength="24"/>
+        </div>
+        <div>
+          <div class="label">Date (YYYY-MM-DD, leave blank for all dates)</div>
+          <input type="text" id="admin-date" placeholder="e.g. 2026-04-08" maxlength="10"/>
+        </div>
+        <button class="btn" style="background:rgba(240,112,112,0.15);border-color:rgba(240,112,112,0.3);color:#f07070;" onclick="adminDelete()">Delete score</button>
+        <div id="admin-msg" style="font-size:12px;min-height:18px;"></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="label">Current scores</div>
+        <div id="admin-lb-list" style="font-size:12px;"></div>
+        <button class="btn" style="font-size:11px;" onclick="loadAdminScores()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  SUPABASE CONFIG — paste your values here
+// ════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON = 'YOUR_SUPABASE_ANON_KEY';
+const SITE_URL      = 'curvle.io';
+
+// ── Admin delete password (change this to something only you know) ──
+const ADMIN_PASSWORD = 'curvle-admin-2026';
+
+// ── Profanity blocklist ──────────────────────────────────────────────
+// Add any words you want to block. Checked case-insensitively.
+const BLOCKED_WORDS = [
+  'fuck','shit','ass','bitch','cunt','dick','cock','pussy','nigger','nigga',
+  'faggot','fag','whore','slut','bastard','piss','twat','wank','bollocks',
+  'asshole','arsehole','motherfucker','retard','tranny','nazi','hitler',
+  'rape','rapist','pedophile','pedo','kike','chink','spic','wetback',
+];
+
+function sanitizeName(raw) {
+  // Strip non-printable chars and trim
+  let name = raw.replace(/[^ -~]/g, '').trim().slice(0, 24);
+  if(!name) return 'Anonymous';
+  // Check blocklist (whole word and substring match)
+  const lower = name.toLowerCase();
+  for(const word of BLOCKED_WORDS) {
+    if(lower.includes(word)) return null; // null = blocked
+  }
+  return name;
+}
+
+// ════════════════════════════════════════════════════════
+//  CURVE POOL
+// ════════════════════════════════════════════════════════
+const CURVE_POOL = [
+  { id:'ease-in',       name:'Ease in',        type:'bezier', cp:[0.55,0,1,0.45]         },
+  { id:'ease-out',      name:'Ease out',       type:'bezier', cp:[0,0.55,0.45,1]          },
+  { id:'ease-in-out',   name:'Ease in-out',    type:'bezier', cp:[0.65,0,0.35,1]          },
+  { id:'linear',        name:'Linear',         type:'bezier', cp:[0.33,0.33,0.67,0.67]    },
+  { id:'overshoot',     name:'Overshoot',      type:'bezier', cp:[0.34,1.56,0.64,1]       },
+  { id:'anticipate',    name:'Anticipate',     type:'bezier', cp:[0.36,0,0.66,-0.56]      },
+  { id:'snap-in',       name:'Snap in',        type:'bezier', cp:[0.9,0,1,0.5]            },
+  { id:'decelerate',    name:'Decelerate',     type:'bezier', cp:[0,0,0.1,1]              },
+  { id:'snappy',        name:'Snappy',         type:'bezier', cp:[0.6,0,0.4,1]            },
+  { id:'slow-mid',      name:'Slow middle',    type:'bezier', cp:[0.1,0.5,0.9,0.5]        },
+  { id:'spring-bouncy', name:'Bouncy spring',  type:'spring', tension:280, friction:8     },
+  { id:'spring-stiff',  name:'Stiff spring',   type:'spring', tension:400, friction:28    },
+  { id:'spring-gentle', name:'Gentle spring',  type:'spring', tension:80,  friction:20    },
+  { id:'spring-normal', name:'Spring',         type:'spring', tension:180, friction:12    },
+  { id:'step-mid',      name:'Step (mid)',     type:'step',   stepAt:0.5,  easeType:'none'},
+  { id:'step-early',    name:'Step (early)',   type:'step',   stepAt:0.25, easeType:'out' },
+  { id:'step-late',     name:'Step (late)',    type:'step',   stepAt:0.75, easeType:'in'  },
+];
+
+// ════════════════════════════════════════════════════════
+//  CURVE MATH
+// ════════════════════════════════════════════════════════
+// CSS cubic-bezier: x1,y1 = handle near start, x2,y2 = handle near end.
+// X axis = time (0-1), Y axis = value (0-1, can exceed for overshoot).
+// We must solve: given input time T, find bezier parameter u where Bx(u)=T,
+// then return By(u). This matches exactly how browsers evaluate cubic-bezier().
+function evalBezier(T, x1, y1, x2, y2) {
+  // Bx(u) = 3u(1-u)^2*x1 + 3u^2(1-u)*x2 + u^3  (with p0x=0, p3x=1)
+  // By(u) = 3u(1-u)^2*y1 + 3u^2(1-u)*y2 + u^3  (with p0y=0, p3y=1)
+  function Bx(u){ return 3*u*(1-u)*(1-u)*x1 + 3*u*u*(1-u)*x2 + u*u*u; }
+  function By(u){ return 3*u*(1-u)*(1-u)*y1 + 3*u*u*(1-u)*y2 + u*u*u; }
+  // Edge cases
+  if(T <= 0) return 0;
+  if(T >= 1) return 1;
+  // Binary search for u where Bx(u) == T
+  let lo=0, hi=1, u=T;
+  for(let i=0;i<32;i++){
+    const mid=(lo+hi)/2;
+    const bx=Bx(mid);
+    if(Math.abs(bx-T) < 0.0001) { u=mid; break; }
+    if(bx < T) lo=mid; else hi=mid;
+    u=mid;
+  }
+  return By(u);
+}
+
+// Spring physics: tension and friction map to real spring constants.
+// We scale t (0-1) to a real time range so oscillations are visible.
+// SPRING_TIME controls how many seconds of spring we show over the animation.
+const SPRING_TIME = 3.5;
+function evalSpring(t, tension, friction) {
+  const time = t * SPRING_TIME;
+  const w0   = Math.sqrt(tension);
+  const zeta = friction / (2 * Math.sqrt(tension));
+  if(zeta >= 1) {
+    // Overdamped - no oscillation
+    const r1 = -w0 * (zeta - Math.sqrt(zeta*zeta - 1));
+    const r2 = -w0 * (zeta + Math.sqrt(zeta*zeta - 1));
+    // Solve for coefficients with x(0)=0, x'(0)=0, x(inf)=1
+    const c2 = (r1) / (r1 - r2);
+    const c1 = 1 - c2;
+    return 1 - (c1*Math.exp(r1*time) + c2*Math.exp(r2*time));
+  }
+  // Underdamped - oscillates
+  const wd = w0 * Math.sqrt(1 - zeta*zeta);
+  const decay = Math.exp(-zeta * w0 * time);
+  const A = 1;
+  const B = (zeta * w0) / wd;
+  return 1 - decay * (A*Math.cos(wd*time) + B*Math.sin(wd*time));
+}
+
+function evalStep(t, stepAt, easeType) {
+  if(t <= 0) return 0;
+  if(t >= 1) return 1;
+  if(t < stepAt) {
+    // Before step: either hold at 0, or ease-in approaching 0
+    return 0;
+  }
+  // After step: jump to 1, then optionally ease
+  const p = (t - stepAt) / (1 - stepAt);
+  if(easeType==='out') return evalBezier(p, 0, 0.55, 0.45, 1);
+  if(easeType==='in')  return evalBezier(p, 0.55, 0, 1, 0.45);
+  return 1;
+}
+
+function sampleCurve(curve, t) {
+  if(curve.type==='bezier') return evalBezier(t, ...curve.cp);
+  if(curve.type==='spring') return evalSpring(t, curve.tension, curve.friction);
+  if(curve.type==='step')   return evalStep(t, curve.stepAt, curve.easeType);
+  return t;
+}
+
+function scoreCurves(user, target, maxScore=100) {
+  // Sample both curves at N evenly-spaced time points and compute RMS error.
+  // No clamping — let overshoot values contribute naturally to the score.
+  const N=80; let sum=0;
+  for(let i=0;i<=N;i++){
+    const t=i/N;
+    const u=sampleCurve(user,t);
+    const v=sampleCurve(target,t);
+    sum += (u-v)**2;
+  }
+  const rms = Math.sqrt(sum/(N+1));
+  // rms of 0 = perfect match, rms ~0.5 = pretty wrong, rms ~1+ = very wrong
+  return Math.round(Math.max(0, 1 - rms*2.0) * maxScore);
+}
+
+// ════════════════════════════════════════════════════════
+//  DAILY SEEDING
+// ════════════════════════════════════════════════════════
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── Streak helpers ───────────────────────────────────────────────────────────
+function getPrevDay(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function calcStreak(todayKey) {
+  // Read today's streak from storage, or compute from history
+  try {
+    const streakData = JSON.parse(localStorage.getItem('gte-streak') || '{}');
+    // streakData = { lastDate, count }
+    const yesterday = getPrevDay(todayKey);
+    if(streakData.lastDate === todayKey) {
+      // Already counted today
+      return streakData.count || 1;
+    } else if(streakData.lastDate === yesterday) {
+      // Continuing streak
+      return (streakData.count || 0) + 1;
+    } else {
+      // Streak broken or first play
       return 1;
     }
+  } catch(_) { return 1; }
+}
 
-    function sampleCurve(curve, t) {
-      if (curve.type === 'bezier') return evalBezier(t, ...curve.cp);
-      if (curve.type === 'spring') return evalSpring(t, curve.tension, curve.friction);
-      if (curve.type === 'step') return evalStep(t, curve.stepAt, curve.easeType);
-      return t;
-    }
+function saveStreak(todayKey, count) {
+  try {
+    localStorage.setItem('gte-streak', JSON.stringify({ lastDate: todayKey, count }));
+  } catch(_) {}
+}
 
-    function scoreCurves(user, target, maxScore = 100) {
-      // Sample both curves at N evenly-spaced time points and compute RMS error.
-      // No clamping — let overshoot values contribute naturally to the score.
-      const N = 80; let sum = 0;
-      for (let i = 0; i <= N; i++) {
-        const t = i / N;
-        const u = sampleCurve(user, t);
-        const v = sampleCurve(target, t);
-        sum += (u - v) ** 2;
-      }
-      const rms = Math.sqrt(sum / (N + 1));
-      // rms of 0 = perfect match, rms ~0.5 = pretty wrong, rms ~1+ = very wrong
-      return Math.round(Math.max(0, 1 - rms * 2.0) * maxScore);
-    }
+function getStreakEmoji(count) {
+  if(count >= 30) return '🏆';
+  if(count >= 14) return '⚡';
+  if(count >= 7)  return '🔥';
+  if(count >= 3)  return '🔥';
+  return '▸';
+}
 
-    // ════════════════════════════════════════════════════════
-    //  DAILY SEEDING
-    // ════════════════════════════════════════════════════════
-    function todayKey() {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
+function getDailyRounds() {
+  const d    = new Date();
+  const seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  function rng(s){ let x=Math.sin(s)*10000; return x-Math.floor(x); }
+  const pool = [...CURVE_POOL];
+  for(let i=pool.length-1;i>0;i--){
+    const j = Math.floor(rng(seed+i)*(i+1));
+    [pool[i],pool[j]] = [pool[j],pool[i]];
+  }
+  return pool.slice(0,6);
+}
 
-    function getDailyRounds() {
-      const d = new Date();
-      const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
-      function rng(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
-      const pool = [...CURVE_POOL];
-      for (let i = pool.length - 1; i > 0; i--) {
-        const j = Math.floor(rng(seed + i) * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
-      }
-      return pool.slice(0, 6);
-    }
+// ════════════════════════════════════════════════════════
+//  SVG HELPERS
+// ════════════════════════════════════════════════════════
+function curvePath(curve, W, H, pad) {
+  const N=80; const pts=[];
+  for(let i=0;i<=N;i++){
+    const t=i/N;
+    const x=pad+t*(W-2*pad);
+    const v=sampleCurve(curve,t);
+    const y=(H-pad)-v*(H-2*pad);
+    pts.push(`${i===0?'M':'L'}${x.toFixed(1)},${Math.max(1,Math.min(H-1,y)).toFixed(1)}`);
+  }
+  return pts.join(' ');
+}
 
-    // ════════════════════════════════════════════════════════
-    //  SVG HELPERS
-    // ════════════════════════════════════════════════════════
-    function curvePath(curve, W, H, pad) {
-      const N = 80; const pts = [];
-      for (let i = 0; i <= N; i++) {
-        const t = i / N;
-        const x = pad + t * (W - 2 * pad);
-        const v = sampleCurve(curve, t);
-        const y = (H - pad) - v * (H - 2 * pad);
-        pts.push(`${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${Math.max(1, Math.min(H - 1, y)).toFixed(1)}`);
-      }
-      return pts.join(' ');
-    }
+function drawCurveInto(svgEl, curve, color, W=90, H=70) {
+  const pad=8;
+  svgEl.innerHTML =
+    `<line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5"/>` +
+    `<line x1="${pad}" y1="${pad}" x2="${W-pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
+    `<path d="${curvePath(curve,W,H,pad)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
 
-    function drawCurveInto(svgEl, curve, color, W = 90, H = 70) {
-      const pad = 8;
-      svgEl.innerHTML =
-        `<line x1="${pad}" y1="${H - pad}" x2="${W - pad}" y2="${H - pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5"/>` +
-        `<line x1="${pad}" y1="${pad}" x2="${W - pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
-        `<path d="${curvePath(curve, W, H, pad)}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
+// ════════════════════════════════════════════════════════
+//  BEZIER EDITOR
+// ════════════════════════════════════════════════════════
+const BEZ_PAD=18, BEZ_INNER=144, BEZ_SIZE=180;
 
-    // ════════════════════════════════════════════════════════
-    //  BEZIER EDITOR
-    // ════════════════════════════════════════════════════════
-    const BEZ_PAD = 18, BEZ_INNER = 144, BEZ_SIZE = 180;
+function hToSvg(h){ return [BEZ_PAD+h[0]*BEZ_INNER, (BEZ_PAD+BEZ_INNER)-h[1]*BEZ_INNER]; }
+function svgToH(sx,sy){
+  return [
+    Math.max(0,Math.min(1,(sx-BEZ_PAD)/BEZ_INNER)),
+    Math.max(-0.5,Math.min(1.5,((BEZ_PAD+BEZ_INNER)-sy)/BEZ_INNER))
+  ];
+}
 
-    function hToSvg(h) { return [BEZ_PAD + h[0] * BEZ_INNER, (BEZ_PAD + BEZ_INNER) - h[1] * BEZ_INNER]; }
-    function svgToH(sx, sy) {
-      return [
-        Math.max(0, Math.min(1, (sx - BEZ_PAD) / BEZ_INNER)),
-        Math.max(-0.5, Math.min(1.5, ((BEZ_PAD + BEZ_INNER) - sy) / BEZ_INNER))
-      ];
-    }
+let bezDragging=null;
+let bezH1=[0.33,0.33], bezH2=[0.67,0.67];
 
-    let bezDragging = null;
-    let bezH1 = [0.33, 0.33], bezH2 = [0.67, 0.67];
+function buildBezierEditor(container) {
+  // touch-action:none on the wrap prevents browser scroll hijacking during drag
+  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;"></svg></div>`;
+  drawBezierSvg();
+  const svg = document.getElementById('bez-svg');
+  svg.addEventListener('mousedown', bezDown);
+  svg.addEventListener('touchstart', bezTouchDown, {passive:false});
+}
 
-    function buildBezierEditor(container) {
-      container.innerHTML = `<div class="curve-wrap" id="bez-wrap"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}"></svg></div>`;
-      drawBezierSvg();
-      const svg = document.getElementById('bez-svg');
-      svg.addEventListener('mousedown', bezDown);
-      svg.addEventListener('touchstart', bezTouchDown, { passive: false });
-    }
-
-    function drawBezierSvg() {
-      const svg = document.getElementById('bez-svg'); if (!svg) return;
-      const [x1, y1] = hToSvg(bezH1), [x2, y2] = hToSvg(bezH2);
-      const ax = BEZ_PAD, ay = BEZ_PAD + BEZ_INNER, bx = BEZ_PAD + BEZ_INNER, by = BEZ_PAD;
-      // Draw parametrically: step u (bezier parameter) 0->1, compute actual Bx and By.
-      // This correctly shows the curve shape including overshoot/undershoot on Y.
-      const N = 80; const pts = [];
-      function Bx(u) { return 3 * u * (1 - u) * (1 - u) * bezH1[0] + 3 * u * u * (1 - u) * bezH2[0] + u * u * u; }
-      function By(u) { return 3 * u * (1 - u) * (1 - u) * bezH1[1] + 3 * u * u * (1 - u) * bezH2[1] + u * u * u; }
-      for (let i = 0; i <= N; i++) {
-        const u = i / N;
-        const px = ax + Bx(u) * BEZ_INNER;
-        const py = ay - By(u) * BEZ_INNER;
-        pts.push(`${i === 0 ? 'M' : 'L'}${px.toFixed(1)},${py.toFixed(1)}`);
-      }
-      svg.innerHTML = `
+function drawBezierSvg() {
+  const svg = document.getElementById('bez-svg'); if(!svg) return;
+  const [x1,y1]=hToSvg(bezH1), [x2,y2]=hToSvg(bezH2);
+  const ax=BEZ_PAD, ay=BEZ_PAD+BEZ_INNER, bx=BEZ_PAD+BEZ_INNER, by=BEZ_PAD;
+  const N=80; const pts=[];
+  function Bx(u){ return 3*u*(1-u)*(1-u)*bezH1[0] + 3*u*u*(1-u)*bezH2[0] + u*u*u; }
+  function By(u){ return 3*u*(1-u)*(1-u)*bezH1[1] + 3*u*u*(1-u)*bezH2[1] + u*u*u; }
+  for(let i=0;i<=N;i++){
+    const u=i/N;
+    const px=ax+Bx(u)*BEZ_INNER;
+    const py=ay-By(u)*BEZ_INNER;
+    pts.push(`${i===0?'M':'L'}${px.toFixed(1)},${py.toFixed(1)}`);
+  }
+  // Hit targets are invisible larger circles behind the visible handles —
+  // 24px radius on mobile is much easier to grab than 7px
+  const HIT = 24;
+  svg.innerHTML = `
     <rect x="${BEZ_PAD}" y="${BEZ_PAD}" width="${BEZ_INNER}" height="${BEZ_INNER}" fill="rgba(38,84,248,0.06)" stroke="rgba(164,194,254,0.15)" stroke-width="0.5" rx="4"/>
     <line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="rgba(164,194,254,0.08)" stroke-width="0.5" stroke-dasharray="3 3"/>
     <line x1="${ax}" y1="${ay}" x2="${x1}" y2="${y1}" stroke="var(--blue-light)" stroke-width="1" stroke-dasharray="3 2"/>
@@ -1118,58 +898,69 @@
     <circle cx="${bx}" cy="${by}" r="4" fill="var(--cream)" opacity="0.7"/>
     <circle class="handle" cx="${x1}" cy="${y1}" r="7" fill="var(--blue-light)" stroke="#1D1D1E" stroke-width="1.5" data-h="h1"/>
     <circle class="handle" cx="${x2}" cy="${y2}" r="7" fill="var(--cream)" stroke="#1D1D1E" stroke-width="1.5" data-h="h2"/>
-    <text x="${BEZ_PAD + BEZ_INNER / 2}" y="${BEZ_SIZE - 4}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif">time</text>
-    <text x="9" y="${BEZ_PAD + BEZ_INNER / 2}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif" transform="rotate(-90,9,${BEZ_PAD + BEZ_INNER / 2})">value</text>`;
-    }
+    <circle cx="${x1}" cy="${y1}" r="${HIT}" fill="transparent" data-h="h1" style="cursor:grab;"/>
+    <circle cx="${x2}" cy="${y2}" r="${HIT}" fill="transparent" data-h="h2" style="cursor:grab;"/>
+    <text x="${BEZ_PAD+BEZ_INNER/2}" y="${BEZ_SIZE-4}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif">time</text>
+    <text x="9" y="${BEZ_PAD+BEZ_INNER/2}" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.25)" font-family="DM Sans,sans-serif" transform="rotate(-90,9,${BEZ_PAD+BEZ_INNER/2})">value</text>`;
+}
 
-    function getBezSvgXY(e) {
-      const svg = document.getElementById('bez-svg'); if (!svg) return [0, 0];
-      const r = svg.getBoundingClientRect();
-      const vb = svg.viewBox.baseVal;
-      const sx = vb.width / r.width, sy = vb.height / r.height;
-      const src = e.touches ? e.touches[0] : e;
-      return [(src.clientX - r.left) * sx, (src.clientY - r.top) * sy];
-    }
-    function bezHitTest(sx, sy, h) { const [hx, hy] = hToSvg(h); return Math.hypot(sx - hx, sy - hy) < 16; }
+function getBezSvgXY(e) {
+  const svg=document.getElementById('bez-svg'); if(!svg) return [0,0];
+  const r=svg.getBoundingClientRect();
+  const vb=svg.viewBox.baseVal;
+  const sx=vb.width/r.width, sy=vb.height/r.height;
+  // Use changedTouches for touchend, touches for touchstart/touchmove
+  const touch = e.changedTouches ? e.changedTouches[0] : (e.touches ? e.touches[0] : e);
+  return [(touch.clientX-r.left)*sx,(touch.clientY-r.top)*sy];
+}
 
-    function bezDown(e) {
-      const [sx, sy] = getBezSvgXY(e);
-      if (bezHitTest(sx, sy, bezH1)) bezDragging = 'h1';
-      else if (bezHitTest(sx, sy, bezH2)) bezDragging = 'h2';
-      if (bezDragging) e.preventDefault();
-    }
-    function bezTouchDown(e) {
-      const [sx, sy] = getBezSvgXY(e);
-      if (bezHitTest(sx, sy, bezH1)) bezDragging = 'h1';
-      else if (bezHitTest(sx, sy, bezH2)) bezDragging = 'h2';
-      if (bezDragging) { e.preventDefault(); }
-    }
-    window.addEventListener('mousemove', e => {
-      if (!bezDragging) return;
-      const [sx, sy] = getBezSvgXY(e);
-      if (bezDragging === 'h1') bezH1 = svgToH(sx, sy);
-      else bezH2 = svgToH(sx, sy);
-      drawBezierSvg();
-    });
-    window.addEventListener('touchmove', e => {
-      if (!bezDragging) return;
-      e.preventDefault();
-      const [sx, sy] = getBezSvgXY(e);
-      if (bezDragging === 'h1') bezH1 = svgToH(sx, sy);
-      else bezH2 = svgToH(sx, sy);
-      drawBezierSvg();
-    }, { passive: false });
-    window.addEventListener('mouseup', () => { bezDragging = null; });
-    window.addEventListener('touchend', () => { bezDragging = null; });
+// Hit radius is larger on touch devices — 28px vs 16px
+function bezHitTest(sx,sy,h){
+  const[hx,hy]=hToSvg(h);
+  const isTouchDevice = window.matchMedia('(pointer:coarse)').matches;
+  const radius = isTouchDevice ? 28 : 16;
+  return Math.hypot(sx-hx,sy-hy) < radius;
+}
 
-    // ════════════════════════════════════════════════════════
-    //  SPRING / STEP EDITORS
-    // ════════════════════════════════════════════════════════
-    let springTension = 180, springFriction = 14;
-    let stepAt = 0.5, stepEaseType = 'none';
+function bezDown(e){
+  const[sx,sy]=getBezSvgXY(e);
+  if(bezHitTest(sx,sy,bezH1)) bezDragging='h1';
+  else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
+  if(bezDragging) e.preventDefault();
+}
+function bezTouchDown(e){
+  const[sx,sy]=getBezSvgXY(e);
+  if(bezHitTest(sx,sy,bezH1)) bezDragging='h1';
+  else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
+  // Always prevent default on touchstart inside the editor to stop scroll stealing
+  e.preventDefault();
+}
+window.addEventListener('mousemove',e=>{
+  if(!bezDragging) return;
+  const[sx,sy]=getBezSvgXY(e);
+  if(bezDragging==='h1') bezH1=svgToH(sx,sy);
+  else bezH2=svgToH(sx,sy);
+  drawBezierSvg();
+});
+window.addEventListener('touchmove',e=>{
+  if(!bezDragging) return;
+  e.preventDefault();
+  const[sx,sy]=getBezSvgXY(e);
+  if(bezDragging==='h1') bezH1=svgToH(sx,sy);
+  else bezH2=svgToH(sx,sy);
+  drawBezierSvg();
+},{passive:false});
+window.addEventListener('mouseup',()=>{ bezDragging=null; });
+window.addEventListener('touchend',()=>{ bezDragging=null; });
 
-    function buildSpringEditor(container) {
-      container.innerHTML = `
+// ════════════════════════════════════════════════════════
+//  SPRING / STEP EDITORS
+// ════════════════════════════════════════════════════════
+let springTension=180, springFriction=14;
+let stepAt=0.5, stepEaseType='none';
+
+function buildSpringEditor(container) {
+  container.innerHTML = `
     <div class="slider-row">
       <span class="sl-label">Tension</span>
       <input type="range" min="40" max="500" step="1" value="${springTension}" id="sl-tension" oninput="springTension=+this.value;document.getElementById('sv-tension').textContent=this.value;drawSpringPreview();">
@@ -1181,824 +972,843 @@
       <span class="sl-val" id="sv-friction">${springFriction}</span>
     </div>
     <svg id="spring-preview-svg" viewBox="0 0 200 90" style="width:100%;display:block;"></svg>`;
-      drawSpringPreview();
-    }
+  drawSpringPreview();
+}
 
-    function drawSpringPreview() {
-      const svg = document.getElementById('spring-preview-svg'); if (!svg) return;
-      const curve = { type: 'spring', tension: springTension, friction: springFriction };
-      const W = 200, H = 90, pad = 10;
-      svg.innerHTML =
-        `<rect x="${pad}" y="${pad}" width="${W - 2 * pad}" height="${H - 2 * pad}" fill="rgba(38,84,248,0.05)" stroke="rgba(164,194,254,0.12)" stroke-width="0.5" rx="3"/>` +
-        `<line x1="${pad}" y1="${pad}" x2="${W - pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
-        `<path d="${curvePath(curve, W, H, pad)}" fill="none" stroke="var(--blue-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
+function drawSpringPreview() {
+  const svg=document.getElementById('spring-preview-svg'); if(!svg) return;
+  const curve={type:'spring',tension:springTension,friction:springFriction};
+  const W=200,H=90,pad=10;
+  svg.innerHTML =
+    `<rect x="${pad}" y="${pad}" width="${W-2*pad}" height="${H-2*pad}" fill="rgba(38,84,248,0.05)" stroke="rgba(164,194,254,0.12)" stroke-width="0.5" rx="3"/>` +
+    `<line x1="${pad}" y1="${pad}" x2="${W-pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
+    `<path d="${curvePath(curve,W,H,pad)}" fill="none" stroke="var(--blue-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
 
-    function buildStepEditor(container) {
-      container.innerHTML = `
+function buildStepEditor(container) {
+  container.innerHTML = `
     <div class="slider-row">
       <span class="sl-label">Step at</span>
-      <input type="range" min="5" max="95" step="1" value="${Math.round(stepAt * 100)}" id="sl-step" oninput="stepAt=this.value/100;document.getElementById('sv-step').textContent=Math.round(this.value)+'%';drawStepPreview();">
-      <span class="sl-val" id="sv-step">${Math.round(stepAt * 100)}%</span>
+      <input type="range" min="5" max="95" step="1" value="${Math.round(stepAt*100)}" id="sl-step" oninput="stepAt=this.value/100;document.getElementById('sv-step').textContent=Math.round(this.value)+'%';drawStepPreview();">
+      <span class="sl-val" id="sv-step">${Math.round(stepAt*100)}%</span>
     </div>
     <div class="slider-row" style="align-items:center;">
       <span class="sl-label">After ease</span>
       <select id="sel-ease" onchange="stepEaseType=this.value;drawStepPreview();">
-        <option value="none" ${stepEaseType === 'none' ? 'selected' : ''}>None (instant)</option>
-        <option value="in"   ${stepEaseType === 'in' ? 'selected' : ''}>Ease in</option>
-        <option value="out"  ${stepEaseType === 'out' ? 'selected' : ''}>Ease out</option>
+        <option value="none" ${stepEaseType==='none'?'selected':''}>None (instant)</option>
+        <option value="in"   ${stepEaseType==='in'?'selected':''}>Ease in</option>
+        <option value="out"  ${stepEaseType==='out'?'selected':''}>Ease out</option>
       </select>
     </div>
     <svg id="step-preview-svg" viewBox="0 0 200 90" style="width:100%;display:block;"></svg>`;
-      drawStepPreview();
-    }
+  drawStepPreview();
+}
 
-    function drawStepPreview() {
-      const svg = document.getElementById('step-preview-svg'); if (!svg) return;
-      const curve = { type: 'step', stepAt: stepAt, easeType: stepEaseType };
-      const W = 200, H = 90, pad = 10;
-      svg.innerHTML =
-        `<rect x="${pad}" y="${pad}" width="${W - 2 * pad}" height="${H - 2 * pad}" fill="rgba(38,84,248,0.05)" stroke="rgba(164,194,254,0.12)" stroke-width="0.5" rx="3"/>` +
-        `<line x1="${pad}" y1="${pad}" x2="${W - pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
-        `<path d="${curvePath(curve, W, H, pad)}" fill="none" stroke="var(--blue-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-    }
+function drawStepPreview() {
+  const svg=document.getElementById('step-preview-svg'); if(!svg) return;
+  const curve={type:'step',stepAt:stepAt,easeType:stepEaseType};
+  const W=200,H=90,pad=10;
+  svg.innerHTML =
+    `<rect x="${pad}" y="${pad}" width="${W-2*pad}" height="${H-2*pad}" fill="rgba(38,84,248,0.05)" stroke="rgba(164,194,254,0.12)" stroke-width="0.5" rx="3"/>` +
+    `<line x1="${pad}" y1="${pad}" x2="${W-pad}" y2="${pad}" stroke="rgba(164,194,254,0.1)" stroke-width="0.5" stroke-dasharray="2 2"/>` +
+    `<path d="${curvePath(curve,W,H,pad)}" fill="none" stroke="var(--blue-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
 
-    // ════════════════════════════════════════════════════════
-    //  GAME STATE
-    // ════════════════════════════════════════════════════════
-    const TOTAL_ROUNDS = 6;
-    let G = {
-      rounds: [], cur: 0, replays: 0, maxScore: 100,
-      total: 0, roundScores: [], prevDone: false,
-      animating: false, playerName: '', lastScore: 0,
-      editorType: 'bezier',
-      lastUserCurve: null,
-    };
+// ════════════════════════════════════════════════════════
+//  GAME STATE
+// ════════════════════════════════════════════════════════
+const TOTAL_ROUNDS = 6;
+let G = {
+  rounds:[], cur:0, replays:0, maxScore:100,
+  total:0, roundScores:[], prevDone:false,
+  animating:false, playerName:'', lastScore:0,
+  editorType:'bezier',
+  lastUserCurve: null,
+};
 
-    function defaultEditorState(curve) {
-      if (curve.type === 'bezier') { bezH1 = [0.33, 0.33]; bezH2 = [0.67, 0.67]; }
-      if (curve.type === 'spring') { springTension = 180; springFriction = 14; }
-      if (curve.type === 'step') { stepAt = 0.5; stepEaseType = 'none'; }
-    }
+function defaultEditorState(curve) {
+  if(curve.type==='bezier'){ bezH1=[0.33,0.33]; bezH2=[0.67,0.67]; }
+  if(curve.type==='spring'){ springTension=180; springFriction=14; }
+  if(curve.type==='step')  { stepAt=0.5; stepEaseType='none'; }
+}
 
-    function getEditorCurve() {
-      const t = G.rounds[G.cur]?.type;
-      if (t === 'bezier') return { type: 'bezier', cp: [bezH1[0], bezH1[1], bezH2[0], bezH2[1]] };
-      if (t === 'spring') return { type: 'spring', tension: springTension, friction: springFriction };
-      if (t === 'step') return { type: 'step', stepAt: stepAt, easeType: stepEaseType };
-    }
+function getEditorCurve() {
+  const t = G.rounds[G.cur]?.type;
+  if(t==='bezier') return {type:'bezier', cp:[bezH1[0],bezH1[1],bezH2[0],bezH2[1]]};
+  if(t==='spring') return {type:'spring', tension:springTension, friction:springFriction};
+  if(t==='step')   return {type:'step', stepAt:stepAt, easeType:stepEaseType};
+}
 
-    // ════════════════════════════════════════════════════════
-    //  ANIMATION DOT
-    // ════════════════════════════════════════════════════════
-    let animRaf = null;
+// ════════════════════════════════════════════════════════
+//  ANIMATION DOT
+// ════════════════════════════════════════════════════════
+let animRaf=null;
 
-    function getStageWidth() {
-      const stage = document.getElementById('anim-stage');
-      if (!stage) return 280;
-      const rect = stage.getBoundingClientRect();
-      if (rect.width > 22) return rect.width - 22;
-      if (stage.offsetWidth > 22) return stage.offsetWidth - 22;
-      if (stage.clientWidth > 22) return stage.clientWidth - 22;
-      return 280;
-    }
+function getStageWidth() {
+  const stage = document.getElementById('anim-stage');
+  if(!stage) return 280;
+  const rect = stage.getBoundingClientRect();
+  if(rect.width > 22) return rect.width - 22;
+  if(stage.offsetWidth > 22) return stage.offsetWidth - 22;
+  if(stage.clientWidth > 22) return stage.clientWidth - 22;
+  return 280;
+}
 
-    function animateDot(curve, onDone) {
-      if (G.animating) return;
-      G.animating = true;
-      const dot = document.getElementById('anim-dot');
-      if (!dot) { G.animating = false; return; }
-      const totalWidth = getStageWidth();
-      const dotW = 15;
-      const buffer = Math.round(totalWidth * 0.18);
-      const travelRange = totalWidth - buffer * 2 - dotW;
-      dot.style.left = buffer + 'px';
-      const DUR = 1600;
-      let t0 = null;
-      function frame(now) {
-        if (!t0) t0 = now;
-        const t = Math.min((now - t0) / DUR, 1);
-        const v = sampleCurve(curve, t);
-        const x = Math.max(0, Math.min(totalWidth - dotW, buffer + v * travelRange));
-        dot.style.left = x + 'px';
-        if (t < 1) { animRaf = requestAnimationFrame(frame); }
-        else { G.animating = false; if (onDone) onDone(); }
-      }
-      requestAnimationFrame(frame);
-    }
+function animateDot(curve, onDone) {
+  if(G.animating) return;
+  G.animating = true;
+  const dot = document.getElementById('anim-dot');
+  if(!dot) { G.animating=false; return; }
+  const totalWidth = getStageWidth();
+  const dotW = 15;
+  const buffer = Math.round(totalWidth * 0.18);
+  const travelRange = totalWidth - buffer * 2 - dotW;
+  dot.style.left = buffer + 'px';
+  const DUR = 1600;
+  let t0 = null;
+  function frame(now) {
+    if(!t0) t0 = now;
+    const t = Math.min((now - t0) / DUR, 1);
+    const v = sampleCurve(curve, t);
+    const x = Math.max(0, Math.min(totalWidth - dotW, buffer + v * travelRange));
+    dot.style.left = x + 'px';
+    if(t < 1) { animRaf = requestAnimationFrame(frame); }
+    else { G.animating = false; if(onDone) onDone(); }
+  }
+  requestAnimationFrame(frame);
+}
 
-    // ════════════════════════════════════════════════════════
-    //  SUPABASE HELPERS
-    // ════════════════════════════════════════════════════════
-    async function sbFetch(path, opts = {}) {
-      if (SUPABASE_URL === 'YOUR_SUPABASE_URL') return null;
-      const { headers: extraHeaders, prefer, ...restOpts } = opts;
-      const isWrite = restOpts.method && restOpts.method !== 'GET';
-      const headers = {
-        'apikey': SUPABASE_ANON,
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-        'Content-Type': 'application/json',
-        ...(isWrite && prefer ? { 'Prefer': prefer } : {}),
-        ...(extraHeaders || {}),
-      };
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-        ...restOpts,
-        headers,
-      });
-      if (!res.ok) return null;
-      const text = await res.text();
-      return text ? JSON.parse(text) : null;
-    }
+// ════════════════════════════════════════════════════════
+//  SUPABASE HELPERS
+// ════════════════════════════════════════════════════════
+async function sbFetch(path, opts={}) {
+  if(SUPABASE_URL==='YOUR_SUPABASE_URL') return null;
+  const { headers: extraHeaders, prefer, ...restOpts } = opts;
+  const isWrite = restOpts.method && restOpts.method !== 'GET';
+  const headers = {
+    'apikey': SUPABASE_ANON,
+    'Authorization': `Bearer ${SUPABASE_ANON}`,
+    'Content-Type': 'application/json',
+    ...(isWrite && prefer ? { 'Prefer': prefer } : {}),
+    ...(extraHeaders || {}),
+  };
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...restOpts,
+    headers,
+  });
+  if(!res.ok) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
 
-    async function saveScore(name, score, date) {
-      return sbFetch('scores', {
-        method: 'POST',
-        body: JSON.stringify({ name, score, date }),
-        prefer: 'return=minimal',
-      });
-    }
+async function saveScore(name, score, date) {
+  return sbFetch('scores', {
+    method: 'POST',
+    body: JSON.stringify({ name, score, date }),
+    prefer: 'return=minimal',
+  });
+}
 
-    async function loadScores() {
-      const data = await sbFetch('scores?select=name,score,date&order=score.desc&limit=20');
-      return data || [];
-    }
+async function loadScores() {
+  const data = await sbFetch('scores?select=name,score,date&order=score.desc&limit=20');
+  return data || [];
+}
 
-    // ════════════════════════════════════════════════════════
-    //  SHARE CARD
-    // ════════════════════════════════════════════════════════
-    function buildShareText() {
-      const lines = [
-        `Curvle · ${G.dailyKey}`,
-        `${G.playerName} · ${G.total}/600`,
-        '',
-      ];
-      G.roundScores.forEach((s, i) => {
-        const filled = Math.round((s / 100) * 7);
-        const bar = '█'.repeat(filled) + '░'.repeat(7 - filled);
-        const name = G.rounds[i]?.name ?? `Round ${i + 1}`;
-        lines.push(`${bar}  ${String(s).padStart(3, ' ')}  ${name}`);
-      });
-      lines.push(''); lines.push(SITE_URL);
-      return lines.join('\n');
-    }
+// ════════════════════════════════════════════════════════
+//  SHARE CARD
+// ════════════════════════════════════════════════════════
+function buildShareText() {
+  const streak = G.streak || 1;
+  const emoji  = getStreakEmoji(streak);
+  const streakLine = streak > 1 ? `${emoji} ${streak} day streak` : `${emoji} Day 1`;
+  const lines = [
+    `Curvle · ${G.dailyKey}`,
+    `${G.playerName} · ${G.total}/600  ${streakLine}`,
+    '',
+  ];
+  G.roundScores.forEach((s,i) => {
+    const filled = Math.round((s/100)*7);
+    const bar    = '█'.repeat(filled) + '░'.repeat(7-filled);
+    const name   = G.rounds[i]?.name ?? `Round ${i+1}`;
+    lines.push(`${bar}  ${String(s).padStart(3,' ')}  ${name}`);
+  });
+  lines.push(''); lines.push(SITE_URL);
+  return lines.join('\n');
+}
 
-    function buildSharePreviewHTML() {
-      const parts = [`<span style="color:rgba(255,255,255,0.4);font-size:11px;">Curvle · ${G.dailyKey}\n${G.playerName} · ${G.total}/600\n\n</span>`];
-      G.roundScores.forEach((s, i) => {
-        const filled = Math.round((s / 100) * 7);
-        const color = s >= 80 ? 'var(--teal)' : s >= 50 ? 'var(--blue-light)' : s >= 20 ? 'var(--amber)' : 'rgba(255,255,255,0.2)';
-        const name = G.rounds[i]?.name ?? `Round ${i + 1}`;
-        let bar = '';
-        for (let j = 0; j < 7; j++) bar += `<span style="color:${j < filled ? color : 'rgba(164,194,254,0.12)'}">█</span>`;
-        parts.push(`${bar}  <span style="color:rgba(255,255,255,0.5);font-size:12px;">${String(s).padStart(3, ' ')}  ${name}</span>\n`);
-      });
-      parts.push(`\n<span style="color:rgba(255,255,255,0.22);font-size:11px;">${SITE_URL}</span>`);
-      return parts.join('');
-    }
+function buildSharePreviewHTML() {
+  const streak = G.streak || 1;
+  const emoji  = getStreakEmoji(streak);
+  const streakLine = streak > 1 ? `${emoji} ${streak} day streak` : `${emoji} Day 1`;
+  const parts = [`<span style="color:rgba(255,255,255,0.4);font-size:11px;">Curvle · ${G.dailyKey}\n${G.playerName} · ${G.total}/600  <span style="color:var(--blue-light);">${streakLine}</span>\n\n</span>`];
+  G.roundScores.forEach((s,i) => {
+    const filled = Math.round((s/100)*7);
+    const color  = s>=80 ? 'var(--teal)' : s>=50 ? 'var(--blue-light)' : s>=20 ? 'var(--amber)' : 'rgba(255,255,255,0.2)';
+    const name   = G.rounds[i]?.name ?? `Round ${i+1}`;
+    let bar = '';
+    for(let j=0;j<7;j++) bar += `<span style="color:${j<filled?color:'rgba(164,194,254,0.12)'}">█</span>`;
+    parts.push(`${bar}  <span style="color:rgba(255,255,255,0.5);font-size:12px;">${String(s).padStart(3,' ')}  ${name}</span>\n`);
+  });
+  parts.push(`\n<span style="color:rgba(255,255,255,0.22);font-size:11px;">${SITE_URL}</span>`);
+  return parts.join('');
+}
 
-    async function handleShare() {
-      const text = buildShareText();
-      const btn = document.getElementById('btn-share');
-      if (navigator.share) {
-        try { await navigator.share({ text }); return; } catch (_) { }
-      }
-      try {
-        await navigator.clipboard.writeText(text);
-        btn.classList.add('btn--success');
-        btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
-        setTimeout(() => {
-          btn.classList.remove('btn--success');
-          btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="6" height="7" rx="1" stroke="white" stroke-width="1.5"/><path d="M3 8v6h10V8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg> Copy results`;
-        }, 2500);
-      } catch (_) { }
-    }
+async function handleShare() {
+  const text = buildShareText();
+  const btn  = document.getElementById('btn-share');
+  if(navigator.share) {
+    try { await navigator.share({text}); return; } catch(_){}
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    btn.classList.add('btn--success');
+    btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Copied!`;
+    setTimeout(() => {
+      btn.classList.remove('btn--success');
+      btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="6" height="7" rx="1" stroke="white" stroke-width="1.5"/><path d="M3 8v6h10V8" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg> Copy results`;
+    }, 2500);
+  } catch(_){}
+}
 
-    // ════════════════════════════════════════════════════════
-    //  SCREEN MANAGEMENT
-    // ════════════════════════════════════════════════════════
-    function showScreen(name) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById('screen-' + name).classList.add('active');
-      window.scrollTo(0, 0);
-    }
+// ════════════════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
 
-    // ════════════════════════════════════════════════════════
-    //  GAME FLOW
-    // ════════════════════════════════════════════════════════
-    function startGame() {
-      const raw = document.getElementById('name-input').value.trim();
-      const name = sanitizeName(raw);
-      if (name === null) {
-        const input = document.getElementById('name-input');
-        input.style.borderColor = 'var(--red, #f07070)';
-        input.placeholder = 'That name isn\'t allowed — try another';
-        input.value = '';
-        setTimeout(() => {
-          input.style.borderColor = '';
-          input.placeholder = 'Your name (for the leaderboard)';
-        }, 2500);
-        return;
-      }
-      G.playerName = name;
-      G.rounds = getDailyRounds();
-      G.cur = 0;
-      G.replays = 0;
-      G.maxScore = 100;
-      G.total = 0;
-      G.roundScores = [];
-      G.prevDone = false;
-      G.animating = false;
-      G.dailyKey = todayKey();
-      showScreen('game');
-      initRound();
-    }
+// ════════════════════════════════════════════════════════
+//  GAME FLOW
+// ════════════════════════════════════════════════════════
+function startGame() {
+  const raw  = document.getElementById('name-input').value.trim();
+  const name = sanitizeName(raw);
+  if(name === null) {
+    const input = document.getElementById('name-input');
+    input.style.borderColor = 'var(--red, #f07070)';
+    input.placeholder = 'That name isn\'t allowed — try another';
+    input.value = '';
+    setTimeout(() => {
+      input.style.borderColor = '';
+      input.placeholder = 'Your name (for the leaderboard)';
+    }, 2500);
+    return;
+  }
+  G.playerName   = name;
+  G.rounds       = getDailyRounds();
+  G.cur          = 0;
+  G.replays      = 0;
+  G.maxScore     = 100;
+  G.total        = 0;
+  G.roundScores  = [];
+  G.prevDone     = false;
+  G.animating    = false;
+  G.dailyKey     = todayKey();
+  showScreen('game');
+  initRound();
+}
 
-    function initRound() {
-      const curve = G.rounds[G.cur];
-      G.replays = 0;
-      G.maxScore = 100;
-      G.prevDone = false;
-      G.animating = false;
+function initRound() {
+  const curve = G.rounds[G.cur];
+  G.replays  = 0;
+  G.maxScore = 100;
+  G.prevDone = false;
+  G.animating = false;
 
-      document.getElementById('game-round-label').textContent = `Round ${G.cur + 1} / ${TOTAL_ROUNDS} · ${curve.name}`;
-      document.getElementById('game-total').textContent = G.total;
-      document.getElementById('max-label').textContent = '100';
-      document.getElementById('btn-preview').disabled = false;
-      document.getElementById('btn-preview').textContent = 'Preview (free)';
-      document.getElementById('btn-replay').disabled = true;
-      document.getElementById('btn-submit').disabled = false;
-      document.getElementById('submit-hint').style.display = '';
-      for (let i = 0; i < 3; i++) document.getElementById('pip' + i).classList.remove('used');
+  document.getElementById('game-round-label').textContent = `Round ${G.cur+1} / ${TOTAL_ROUNDS} · ${curve.name}`;
+  document.getElementById('game-total').textContent = G.total;
+  document.getElementById('max-label').textContent  = '100';
+  document.getElementById('btn-preview').disabled   = false;
+  document.getElementById('btn-preview').textContent = 'Preview (free)';
+  document.getElementById('btn-replay').disabled    = true;
+  document.getElementById('btn-submit').disabled    = false;
+  document.getElementById('submit-hint').style.display = '';
+  for(let i=0;i<3;i++) document.getElementById('pip'+i).classList.remove('used');
 
-      // Progress bar
-      const pb = document.getElementById('progress-bar');
-      pb.innerHTML = '';
-      for (let i = 0; i < TOTAL_ROUNDS; i++) {
-        const seg = document.createElement('div');
-        seg.className = 'progress-seg' + (i < G.cur ? ' done' : i === G.cur ? ' current' : '');
-        pb.appendChild(seg);
-      }
+  // Progress bar
+  const pb = document.getElementById('progress-bar');
+  pb.innerHTML = '';
+  for(let i=0;i<TOTAL_ROUNDS;i++){
+    const seg=document.createElement('div');
+    seg.className='progress-seg'+(i<G.cur?' done':i===G.cur?' current':'');
+    pb.appendChild(seg);
+  }
 
-      // Editor
-      defaultEditorState(curve);
-      const badgeWrap = document.getElementById('mode-badge-wrap');
-      const area = document.getElementById('editor-area');
-      const labels = { bezier: 'Bezier handles', spring: 'Spring controls', step: 'Step controls' };
-      const cls = { bezier: 'bezier', spring: 'spring', step: 'step' };
-      badgeWrap.innerHTML = `<div class="mode-badge mode-badge--${cls[curve.type]}">${labels[curve.type]}</div>`;
+  // Editor
+  defaultEditorState(curve);
+  const badgeWrap = document.getElementById('mode-badge-wrap');
+  const area      = document.getElementById('editor-area');
+  const labels    = {bezier:'Bezier handles', spring:'Spring controls', step:'Step controls'};
+  const cls       = {bezier:'bezier', spring:'spring', step:'step'};
+  badgeWrap.innerHTML = `<div class="mode-badge mode-badge--${cls[curve.type]}">${labels[curve.type]}</div>`;
 
-      if (curve.type === 'bezier') buildBezierEditor(area);
-      if (curve.type === 'spring') buildSpringEditor(area);
-      if (curve.type === 'step') buildStepEditor(area);
+  if(curve.type==='bezier') buildBezierEditor(area);
+  if(curve.type==='spring') buildSpringEditor(area);
+  if(curve.type==='step')   buildStepEditor(area);
 
-      // Reset dot
-      const dot = document.getElementById('anim-dot');
-      if (dot) { const sw = getStageWidth(); dot.style.left = Math.round(sw * 0.18) + 'px'; }
-    }
+  // Reset dot
+  const dot = document.getElementById('anim-dot');
+  if(dot) { const sw = getStageWidth(); dot.style.left = Math.round(sw * 0.18) + 'px'; }
+}
 
-    function resetEditor() {
-      defaultEditorState(G.rounds[G.cur]);
-      const area = document.getElementById('editor-area');
-      const curve = G.rounds[G.cur];
-      if (curve.type === 'bezier') buildBezierEditor(area);
-      if (curve.type === 'spring') buildSpringEditor(area);
-      if (curve.type === 'step') buildStepEditor(area);
-    }
+function resetEditor() {
+  defaultEditorState(G.rounds[G.cur]);
+  const area = document.getElementById('editor-area');
+  const curve = G.rounds[G.cur];
+  if(curve.type==='bezier') buildBezierEditor(area);
+  if(curve.type==='spring') buildSpringEditor(area);
+  if(curve.type==='step')   buildStepEditor(area);
+}
 
-    function doPreview() {
-      if (G.animating) return;
-      G.prevDone = true;
-      document.getElementById('btn-preview').disabled = true;
-      document.getElementById('btn-preview').textContent = 'Previewed ✓';
-      document.getElementById('submit-hint').style.display = 'none';
-      animateDot(G.rounds[G.cur], () => {
-        document.getElementById('btn-replay').disabled = false;
-      });
-    }
+function doPreview() {
+  if(G.animating) return;
+  G.prevDone = true;
+  document.getElementById('btn-preview').disabled = true;
+  document.getElementById('btn-preview').textContent = 'Previewed ✓';
+  document.getElementById('submit-hint').style.display = 'none';
+  animateDot(G.rounds[G.cur], () => {
+    document.getElementById('btn-replay').disabled = false;
+  });
+}
 
-    function doReplay() {
-      if (G.animating || G.replays >= 3) return;
-      document.getElementById('pip' + G.replays).classList.add('used');
-      G.replays++;
-      G.maxScore = 100 - G.replays * 5;
-      document.getElementById('max-label').textContent = G.maxScore;
-      if (G.replays >= 3) document.getElementById('btn-replay').disabled = true;
-      animateDot(G.rounds[G.cur], null);
-    }
+function doReplay() {
+  if(G.animating || G.replays>=3) return;
+  document.getElementById('pip'+G.replays).classList.add('used');
+  G.replays++;
+  G.maxScore = 100 - G.replays*5;
+  document.getElementById('max-label').textContent = G.maxScore;
+  if(G.replays>=3) document.getElementById('btn-replay').disabled = true;
+  animateDot(G.rounds[G.cur], null);
+}
 
-    function submitGuess() {
-      if (!G.prevDone) {
-        document.getElementById('btn-preview').style.outline = '2px solid var(--amber)';
-        setTimeout(() => { document.getElementById('btn-preview').style.outline = ''; }, 1200);
-        return;
-      }
-      const userCurve = getEditorCurve();
-      G.lastUserCurve = userCurve;
-      const score = scoreCurves(userCurve, G.rounds[G.cur], G.maxScore);
-      G.lastScore = score;
-      G.total += score;
-      G.roundScores.push(score);
+function submitGuess() {
+  if(!G.prevDone){
+    document.getElementById('btn-preview').style.outline = '2px solid var(--amber)';
+    setTimeout(()=>{ document.getElementById('btn-preview').style.outline=''; }, 1200);
+    return;
+  }
+  const userCurve = getEditorCurve();
+  G.lastUserCurve = userCurve;
+  const score = scoreCurves(userCurve, G.rounds[G.cur], G.maxScore);
+  G.lastScore = score;
+  G.total    += score;
+  G.roundScores.push(score);
 
-      // Build result screen
-      document.getElementById('result-score').textContent = score;
-      document.getElementById('result-label').textContent = `out of ${G.maxScore} pts · ${G.rounds[G.cur].name}`;
-      drawCurveInto(document.getElementById('result-user-svg'), userCurve, 'var(--amber)');
-      drawCurveInto(document.getElementById('result-target-svg'), G.rounds[G.cur], 'var(--teal)');
+  // Build result screen
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-label').textContent = `out of ${G.maxScore} pts · ${G.rounds[G.cur].name}`;
+  drawCurveInto(document.getElementById('result-user-svg'),   userCurve,        'var(--amber)');
+  drawCurveInto(document.getElementById('result-target-svg'), G.rounds[G.cur],  'var(--teal)');
 
-      const rp = document.getElementById('result-progress');
-      rp.innerHTML = '';
-      for (let i = 0; i < TOTAL_ROUNDS; i++) {
-        const seg = document.createElement('div');
-        seg.className = 'progress-seg' + (i <= G.cur ? ' done' : '');
-        rp.appendChild(seg);
-      }
+  const rp = document.getElementById('result-progress');
+  rp.innerHTML = '';
+  for(let i=0;i<TOTAL_ROUNDS;i++){
+    const seg=document.createElement('div');
+    seg.className='progress-seg'+(i<=G.cur?' done':'');
+    rp.appendChild(seg);
+  }
 
-      document.getElementById('btn-next').textContent =
-        G.cur >= TOTAL_ROUNDS - 1 ? 'See final score' : 'Next round →';
+  document.getElementById('btn-next').textContent =
+    G.cur >= TOTAL_ROUNDS-1 ? 'See final score' : 'Next round →';
 
-      showScreen('result');
-    }
+  showScreen('result');
+}
 
-    function nextRound() {
-      G.cur++;
-      if (G.cur >= TOTAL_ROUNDS) { finishGame(); }
-      else { showScreen('game'); initRound(); }
-    }
+function nextRound() {
+  G.cur++;
+  if(G.cur >= TOTAL_ROUNDS) { finishGame(); }
+  else { showScreen('game'); initRound(); }
+}
 
-    async function finishGame() {
-      // Save to localStorage
-      try {
-        localStorage.setItem(`gte-played-${G.dailyKey}`, JSON.stringify({
-          score: G.total, roundScores: G.roundScores, name: G.playerName,
-        }));
-      } catch (_) { }
+async function finishGame() {
+  // Compute streak before saving
+  const streak = calcStreak(G.dailyKey);
+  G.streak = streak;
+  saveStreak(G.dailyKey, streak);
 
-      // Save to Supabase
-      await saveScore(G.playerName, G.total, G.dailyKey);
+  // Save to localStorage
+  try {
+    localStorage.setItem(`gte-played-${G.dailyKey}`, JSON.stringify({
+      score: G.total, roundScores: G.roundScores, name: G.playerName, streak,
+    }));
+  } catch(_){}
 
-      // Build final screen
-      const pct = G.total / (TOTAL_ROUNDS * 100);
-      const grade =
-        pct >= 0.90 ? 'Motion design legend' :
-          pct >= 0.75 ? 'Senior animator' :
-            pct >= 0.55 ? 'Mid-level motion designer' :
-              pct >= 0.38 ? 'Junior animator' : 'Keep grinding';
+  // Save to Supabase
+  await saveScore(G.playerName, G.total, G.dailyKey);
 
-      document.getElementById('final-date').textContent = `${G.dailyKey} · Daily challenge`;
-      document.getElementById('final-score').textContent = G.total;
-      document.getElementById('final-grade').textContent = `/ 600 · ${grade}`;
+  // Build final screen
+  const pct = G.total / (TOTAL_ROUNDS*100);
+  const grade =
+    pct>=0.90 ? 'Motion design legend'      :
+    pct>=0.75 ? 'Senior animator'           :
+    pct>=0.55 ? 'Mid-level motion designer' :
+    pct>=0.38 ? 'Junior animator'           : 'Keep grinding';
 
-      const tiles = document.getElementById('score-tiles');
-      tiles.innerHTML = '';
-      G.roundScores.forEach((s, i) => {
-        const bg = s >= 80 ? 'rgba(93,202,165,0.12)' : s >= 50 ? 'rgba(38,84,248,0.18)' : 'rgba(164,194,254,0.05)';
-        const color = s >= 80 ? 'var(--teal)' : s >= 50 ? 'var(--blue-light)' : 'rgba(254,252,238,0.35)';
-        tiles.innerHTML += `
+  document.getElementById('final-date').textContent  = `${G.dailyKey} · Daily challenge`;
+  document.getElementById('final-score').textContent = G.total;
+  document.getElementById('final-grade').textContent = `/ 600 · ${grade}`;
+
+  const tiles = document.getElementById('score-tiles');
+  tiles.innerHTML = '';
+  G.roundScores.forEach((s,i) => {
+    const bg    = s>=80 ? 'rgba(93,202,165,0.12)'  : s>=50 ? 'rgba(38,84,248,0.18)' : 'rgba(164,194,254,0.05)';
+    const color = s>=80 ? 'var(--teal)'             : s>=50 ? 'var(--blue-light)'       : 'rgba(254,252,238,0.35)';
+    tiles.innerHTML += `
       <div class="score-tile" style="background:${bg};color:${color};">
-        <span class="tile-r">R${i + 1}</span>${s}
+        <span class="tile-r">R${i+1}</span>${s}
       </div>`;
-      });
+  });
 
-      document.getElementById('share-preview').innerHTML = buildSharePreviewHTML();
+  // Streak display
+  const streakEl = document.getElementById('final-streak');
+  if(streakEl) {
+    const emoji = getStreakEmoji(streak);
+    streakEl.textContent = streak === 1
+      ? `${emoji} 1 day played`
+      : `${emoji} ${streak} day streak`;
+    streakEl.style.display = streak >= 1 ? 'inline-flex' : 'none';
+  }
 
-      showScreen('final');
-    }
+  document.getElementById('share-preview').innerHTML = buildSharePreviewHTML();
 
-    async function openLeaderboard() {
-      showScreen('leaderboard');
-      const list = document.getElementById('lb-list');
-      list.innerHTML = '<div class="empty-state">Loading...</div>';
-      const scores = await loadScores();
+  showScreen('final');
+}
 
-      if (!scores || scores.length === 0) {
-        list.innerHTML = '<div class="empty-state">No scores yet — be the first!</div>';
-        return;
-      }
+async function openLeaderboard() {
+  showScreen('leaderboard');
+  const list = document.getElementById('lb-list');
+  list.innerHTML = '<div class="empty-state">Loading...</div>';
+  const scores = await loadScores();
 
-      const medals = ['🥇', '🥈', '🥉'];
-      list.innerHTML = scores.map((s, i) => {
-        const isYou = s.name === G.playerName;
-        return `
-      <div class="lb-row ${isYou ? 'is-you' : ''}">
-        <span class="lb-rank">${medals[i] || i + 1}</span>
-        <span class="lb-name">${s.name}${isYou ? '<span class="lb-you">you</span>' : ''}</span>
+  if(!scores || scores.length===0){
+    list.innerHTML = '<div class="empty-state">No scores yet — be the first!</div>';
+    return;
+  }
+
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = scores.map((s,i) => {
+    const isYou = s.name === G.playerName;
+    return `
+      <div class="lb-row ${isYou?'is-you':''}">
+        <span class="lb-rank">${medals[i]||i+1}</span>
+        <span class="lb-name">${s.name}${isYou?'<span class="lb-you">you</span>':''}</span>
         <span class="lb-score">${s.score}</span>
         <span style="font-size:11px;color:var(--txt3);">/600</span>
-        <span class="lb-date">${s.date || ''}</span>
+        <span class="lb-date">${s.date||''}</span>
       </div>`;
-      }).join('');
-    }
+  }).join('');
+}
 
-    // ════════════════════════════════════════════════════════
-    //  INIT
-    // ════════════════════════════════════════════════════════
-    (function init() {
-      const key = todayKey();
-      document.getElementById('intro-date').textContent = `Daily challenge · ${key}`;
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+(function init() {
+  const key = todayKey();
+  document.getElementById('intro-date').textContent = `Daily challenge · ${key}`;
 
-      // Draw intro preview curves
-      drawCurveInto(document.getElementById('intro-bezier-svg'),
-        { type: 'bezier', cp: [0.34, 1.56, 0.64, 1] }, 'var(--blue-light)', 70, 50);
-      drawCurveInto(document.getElementById('intro-spring-svg'),
-        { type: 'spring', tension: 280, friction: 8 }, 'var(--teal)', 70, 50);
-      drawCurveInto(document.getElementById('intro-step-svg'),
-        { type: 'step', stepAt: 0.5, easeType: 'none' }, 'var(--amber)', 70, 50);
+  // Draw intro preview curves
+  drawCurveInto(document.getElementById('intro-bezier-svg'),
+    {type:'bezier',cp:[0.34,1.56,0.64,1]}, 'var(--blue-light)', 70, 50);
+  drawCurveInto(document.getElementById('intro-spring-svg'),
+    {type:'spring',tension:280,friction:8}, 'var(--teal)', 70, 50);
+  drawCurveInto(document.getElementById('intro-step-svg'),
+    {type:'step',stepAt:0.5,easeType:'none'}, 'var(--amber)', 70, 50);
 
-      // ?admin=1 or ?admin=<password> bypasses the already-played gate for testing
-      const adminParam = new URLSearchParams(window.location.search).get('admin');
-      const isAdmin = adminParam === '1' || adminParam === ADMIN_PASSWORD;
+  // ?admin=1 or ?admin=<password> bypasses the already-played gate for testing
+  const adminParam = new URLSearchParams(window.location.search).get('admin');
+  const isAdmin = adminParam === '1' || adminParam === ADMIN_PASSWORD;
 
-      // Check localStorage for today's play
-      if (!isAdmin) {
-        try {
-          const saved = localStorage.getItem(`gte-played-${key}`);
-          if (saved) {
-            const data = JSON.parse(saved);
-            document.getElementById('already-played-msg').style.display = 'block';
-            document.getElementById('already-score').textContent = `${data.score}/600`;
-            document.getElementById('play-form').style.display = 'none';
-            // Still let them access leaderboard
-            G.playerName = data.name || '';
-            G.dailyKey = key;
-          }
-        } catch (_) { }
+  // Check localStorage for today's play
+  if(!isAdmin) {
+    try {
+      const saved = localStorage.getItem(`gte-played-${key}`);
+      if(saved){
+        const data = JSON.parse(saved);
+        document.getElementById('already-played-msg').style.display = 'block';
+        document.getElementById('already-score').textContent = `${data.score}/600`;
+        document.getElementById('play-form').style.display = 'none';
+        // Still let them access leaderboard
+        G.playerName = data.name || '';
+        G.dailyKey   = key;
+        G.streak     = data.streak || calcStreak(key);
       }
-    })();
+    } catch(_){}
+  }
+})();
 
-    // ════════════════════════════════════════════════════════
-    //  GSAP ANIMATIONS & CANVAS BACKGROUND
-    // ════════════════════════════════════════════════════════
-    (function initVisuals() {
+// ════════════════════════════════════════════════════════
+//  GSAP ANIMATIONS & CANVAS BACKGROUND
+// ════════════════════════════════════════════════════════
+(function initVisuals() {
 
 
-      // ── Parallax background shapes ────────────────────────
-      (function buildParallax() {
-        const bg = document.getElementById('parallax-bg');
-        if (!bg) return;
+  // ── Parallax background shapes ────────────────────────
+  (function buildParallax() {
+    const bg = document.getElementById('parallax-bg');
+    if(!bg) return;
 
-        // Mouse position normalised -1 to +1
-        let mx = 0, my = 0;
-        let tx = 0, ty = 0; // smoothed target
+    // Mouse position normalised -1 to +1
+    let mx = 0, my = 0;
+    let tx = 0, ty = 0; // smoothed target
 
-        window.addEventListener('mousemove', e => {
-          mx = (e.clientX / window.innerWidth - 0.5) * 2;
-          my = (e.clientY / window.innerHeight - 0.5) * 2;
-        });
+    window.addEventListener('mousemove', e => {
+      mx = (e.clientX / window.innerWidth  - 0.5) * 2;
+      my = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
 
-        // Shape definitions: type, x%, y%, size, color, depth (0=slow 1=fast), opacity
-        const SHAPES = [
-          // Large slow circles — deep layer
-          { type: 'circle', x: 12, y: 18, w: 180, h: 180, color: '38,84,248', depth: 0.08, op: 0.18 },
-          { type: 'circle', x: 88, y: 72, w: 220, h: 220, color: '40,61,166', depth: 0.06, op: 0.14 },
-          { type: 'circle', x: 55, y: 85, w: 140, h: 140, color: '38,84,248', depth: 0.07, op: 0.12 },
-          { type: 'circle', x: 78, y: 12, w: 100, h: 100, color: '164,194,254', depth: 0.09, op: 0.10 },
-          { type: 'circle', x: 30, y: 60, w: 80, h: 80, color: '40,61,166', depth: 0.10, op: 0.15 },
+    // Shape definitions: type, x%, y%, size, color, depth (0=slow 1=fast), opacity
+    const SHAPES = [
+      // Large slow circles — deep layer
+      { type:'circle', x:12,  y:18,  w:180, h:180, color:'38,84,248',   depth:0.08, op:0.18 },
+      { type:'circle', x:88,  y:72,  w:220, h:220, color:'40,61,166',   depth:0.06, op:0.14 },
+      { type:'circle', x:55,  y:85,  w:140, h:140, color:'38,84,248',   depth:0.07, op:0.12 },
+      { type:'circle', x:78,  y:12,  w:100, h:100, color:'164,194,254', depth:0.09, op:0.10 },
+      { type:'circle', x:30,  y:60,  w:80,  h:80,  color:'40,61,166',   depth:0.10, op:0.15 },
 
-          // Medium rings — mid layer
-          { type: 'ring', x: 20, y: 80, w: 90, h: 90, color: '164,194,254', depth: 0.18, op: 0.20 },
-          { type: 'ring', x: 75, y: 30, w: 120, h: 120, color: '38,84,248', depth: 0.14, op: 0.18 },
-          { type: 'ring', x: 50, y: 15, w: 60, h: 60, color: '164,194,254', depth: 0.20, op: 0.16 },
-          { type: 'ring', x: 90, y: 55, w: 70, h: 70, color: '40,61,166', depth: 0.16, op: 0.14 },
+      // Medium rings — mid layer
+      { type:'ring',   x:20,  y:80,  w:90,  h:90,  color:'164,194,254', depth:0.18, op:0.20 },
+      { type:'ring',   x:75,  y:30,  w:120, h:120, color:'38,84,248',   depth:0.14, op:0.18 },
+      { type:'ring',   x:50,  y:15,  w:60,  h:60,  color:'164,194,254', depth:0.20, op:0.16 },
+      { type:'ring',   x:90,  y:55,  w:70,  h:70,  color:'40,61,166',   depth:0.16, op:0.14 },
 
-          // Horizontal lines — fast layer
-          { type: 'line', x: 5, y: 25, w: 160, h: 1, color: '164,194,254', depth: 0.30, op: 0.12 },
-          { type: 'line', x: 60, y: 45, w: 220, h: 1, color: '38,84,248', depth: 0.28, op: 0.10 },
-          { type: 'line', x: 15, y: 65, w: 100, h: 1, color: '164,194,254', depth: 0.35, op: 0.08 },
-          { type: 'line', x: 70, y: 88, w: 180, h: 1, color: '40,61,166', depth: 0.25, op: 0.09 },
-          { type: 'line', x: 40, y: 10, w: 120, h: 1, color: '164,194,254', depth: 0.32, op: 0.07 },
+      // Horizontal lines — fast layer
+      { type:'line',   x:5,   y:25,  w:160, h:1,   color:'164,194,254', depth:0.30, op:0.12 },
+      { type:'line',   x:60,  y:45,  w:220, h:1,   color:'38,84,248',   depth:0.28, op:0.10 },
+      { type:'line',   x:15,  y:65,  w:100, h:1,   color:'164,194,254', depth:0.35, op:0.08 },
+      { type:'line',   x:70,  y:88,  w:180, h:1,   color:'40,61,166',   depth:0.25, op:0.09 },
+      { type:'line',   x:40,  y:10,  w:120, h:1,   color:'164,194,254', depth:0.32, op:0.07 },
 
-          // Small dots — fast layer
-          { type: 'dot', x: 22, y: 42, w: 5, h: 5, color: '164,194,254', depth: 0.40, op: 0.45 },
-          { type: 'dot', x: 68, y: 22, w: 4, h: 4, color: '254,252,238', depth: 0.38, op: 0.35 },
-          { type: 'dot', x: 85, y: 60, w: 6, h: 6, color: '164,194,254', depth: 0.42, op: 0.40 },
-          { type: 'dot', x: 35, y: 78, w: 4, h: 4, color: '254,252,238', depth: 0.45, op: 0.30 },
-          { type: 'dot', x: 55, y: 50, w: 3, h: 3, color: '164,194,254', depth: 0.50, op: 0.50 },
-          { type: 'dot', x: 10, y: 90, w: 5, h: 5, color: '38,84,248', depth: 0.36, op: 0.60 },
-          { type: 'dot', x: 92, y: 38, w: 4, h: 4, color: '164,194,254', depth: 0.44, op: 0.45 },
-          { type: 'dot', x: 48, y: 92, w: 3, h: 3, color: '254,252,238', depth: 0.48, op: 0.28 },
+      // Small dots — fast layer
+      { type:'dot',    x:22,  y:42,  w:5,   h:5,   color:'164,194,254', depth:0.40, op:0.45 },
+      { type:'dot',    x:68,  y:22,  w:4,   h:4,   color:'254,252,238', depth:0.38, op:0.35 },
+      { type:'dot',    x:85,  y:60,  w:6,   h:6,   color:'164,194,254', depth:0.42, op:0.40 },
+      { type:'dot',    x:35,  y:78,  w:4,   h:4,   color:'254,252,238', depth:0.45, op:0.30 },
+      { type:'dot',    x:55,  y:50,  w:3,   h:3,   color:'164,194,254', depth:0.50, op:0.50 },
+      { type:'dot',    x:10,  y:90,  w:5,   h:5,   color:'38,84,248',   depth:0.36, op:0.60 },
+      { type:'dot',    x:92,  y:38,  w:4,   h:4,   color:'164,194,254', depth:0.44, op:0.45 },
+      { type:'dot',    x:48,  y:92,  w:3,   h:3,   color:'254,252,238', depth:0.48, op:0.28 },
 
-          // Diamonds — mid layer
-          { type: 'diamond', x: 8, y: 50, w: 18, h: 18, color: '164,194,254', depth: 0.22, op: 0.25 },
-          { type: 'diamond', x: 95, y: 20, w: 12, h: 12, color: '254,252,238', depth: 0.26, op: 0.20 },
-          { type: 'diamond', x: 62, y: 70, w: 16, h: 16, color: '164,194,254', depth: 0.20, op: 0.22 },
+      // Diamonds — mid layer
+      { type:'diamond', x:8,  y:50,  w:18, h:18,   color:'164,194,254', depth:0.22, op:0.25 },
+      { type:'diamond', x:95, y:20,  w:12, h:12,   color:'254,252,238', depth:0.26, op:0.20 },
+      { type:'diamond', x:62, y:70,  w:16, h:16,   color:'164,194,254', depth:0.20, op:0.22 },
 
-          // Cross/plus marks
-          { type: 'cross', x: 42, y: 32, w: 16, h: 16, color: '164,194,254', depth: 0.24, op: 0.18 },
-          { type: 'cross', x: 80, y: 82, w: 12, h: 12, color: '254,252,238', depth: 0.28, op: 0.15 },
-        ];
+      // Cross/plus marks
+      { type:'cross',   x:42, y:32,  w:16, h:16,   color:'164,194,254', depth:0.24, op:0.18 },
+      { type:'cross',   x:80, y:82,  w:12, h:12,   color:'254,252,238', depth:0.28, op:0.15 },
+    ];
 
-        const W = window.innerWidth, H = window.innerHeight;
-        const els = [];
+    const W = window.innerWidth, H = window.innerHeight;
+    const els = [];
 
-        SHAPES.forEach((s, i) => {
-          const el = document.createElement('div');
-          el.className = 'px-shape';
+    SHAPES.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'px-shape';
 
-          const baseX = (s.x / 100) * W;
-          const baseY = (s.y / 100) * H;
+      const baseX = (s.x / 100) * W;
+      const baseY = (s.y / 100) * H;
 
-          el.style.left = baseX + 'px';
-          el.style.top = baseY + 'px';
-          el.style.width = s.w + 'px';
-          el.style.height = s.h + 'px';
+      el.style.left = baseX + 'px';
+      el.style.top  = baseY + 'px';
+      el.style.width  = s.w + 'px';
+      el.style.height = s.h + 'px';
 
-          const col = `rgba(${s.color},${s.op})`;
-          const colBorder = `rgba(${s.color},${s.op * 1.4})`;
+      const col = `rgba(${s.color},${s.op})`;
+      const colBorder = `rgba(${s.color},${s.op * 1.4})`;
 
-          if (s.type === 'circle') {
-            el.style.borderRadius = '50%';
-            el.style.background = `radial-gradient(circle, rgba(${s.color},${s.op * 0.6}) 0%, rgba(${s.color},0) 70%)`;
-            el.style.border = 'none';
-          } else if (s.type === 'ring') {
-            el.style.borderRadius = '50%';
-            el.style.border = `1px solid ${colBorder}`;
-            el.style.background = 'transparent';
-          } else if (s.type === 'line') {
-            el.style.background = `linear-gradient(90deg, transparent, ${col} 20%, ${col} 80%, transparent)`;
-            el.style.borderRadius = '0';
-          } else if (s.type === 'dot') {
-            el.style.borderRadius = '50%';
-            el.style.background = col;
-            el.style.boxShadow = `0 0 ${s.w * 2}px rgba(${s.color},${s.op * 0.5})`;
-          } else if (s.type === 'diamond') {
-            el.style.transform = 'rotate(45deg)';
-            el.style.border = `1px solid ${colBorder}`;
-            el.style.background = `rgba(${s.color},${s.op * 0.2})`;
-            el.style.borderRadius = '2px';
-          } else if (s.type === 'cross') {
-            el.style.position = 'absolute';
-            el.innerHTML = `
+      if(s.type === 'circle') {
+        el.style.borderRadius = '50%';
+        el.style.background = `radial-gradient(circle, rgba(${s.color},${s.op * 0.6}) 0%, rgba(${s.color},0) 70%)`;
+        el.style.border = 'none';
+      } else if(s.type === 'ring') {
+        el.style.borderRadius = '50%';
+        el.style.border = `1px solid ${colBorder}`;
+        el.style.background = 'transparent';
+      } else if(s.type === 'line') {
+        el.style.background = `linear-gradient(90deg, transparent, ${col} 20%, ${col} 80%, transparent)`;
+        el.style.borderRadius = '0';
+      } else if(s.type === 'dot') {
+        el.style.borderRadius = '50%';
+        el.style.background = col;
+        el.style.boxShadow = `0 0 ${s.w * 2}px rgba(${s.color},${s.op * 0.5})`;
+      } else if(s.type === 'diamond') {
+        el.style.transform = 'rotate(45deg)';
+        el.style.border = `1px solid ${colBorder}`;
+        el.style.background = `rgba(${s.color},${s.op * 0.2})`;
+        el.style.borderRadius = '2px';
+      } else if(s.type === 'cross') {
+        el.style.position = 'absolute';
+        el.innerHTML = `
           <svg width="${s.w}" height="${s.h}" viewBox="0 0 ${s.w} ${s.h}" fill="none"
                style="display:block;overflow:visible;">
-            <line x1="${s.w / 2}" y1="0" x2="${s.w / 2}" y2="${s.h}"
+            <line x1="${s.w/2}" y1="0" x2="${s.w/2}" y2="${s.h}"
                   stroke="rgba(${s.color},${s.op * 1.5})" stroke-width="1"/>
-            <line x1="0" y1="${s.h / 2}" x2="${s.w}" y2="${s.h / 2}"
+            <line x1="0" y1="${s.h/2}" x2="${s.w}" y2="${s.h/2}"
                   stroke="rgba(${s.color},${s.op * 1.5})" stroke-width="1"/>
           </svg>`;
-          }
+      }
 
-          bg.appendChild(el);
-          els.push({ el, s, baseX, baseY });
+      bg.appendChild(el);
+      els.push({ el, s, baseX, baseY });
 
-          // Fade in staggered
-          gsap.to(el, {
-            opacity: 1,
-            duration: 1.2 + Math.random() * 0.8,
-            delay: 0.05 * i + Math.random() * 0.4,
-            ease: 'power2.out'
-          });
-        });
+      // Fade in staggered
+      gsap.to(el, {
+        opacity: 1,
+        duration: 1.2 + Math.random() * 0.8,
+        delay: 0.05 * i + Math.random() * 0.4,
+        ease: 'power2.out'
+      });
+    });
 
-        // Smooth parallax loop
-        function parallaxLoop() {
-          // Lerp mouse toward target for smoothness
-          tx += (mx - tx) * 0.05;
-          ty += (my - ty) * 0.05;
+    // Smooth parallax loop
+    function parallaxLoop() {
+      // Lerp mouse toward target for smoothness
+      tx += (mx - tx) * 0.05;
+      ty += (my - ty) * 0.05;
 
-          els.forEach(({ el, s, baseX, baseY }) => {
-            const maxShift = 80;
-            const shiftX = tx * maxShift * s.depth;
-            const shiftY = ty * maxShift * s.depth * 0.6;
+      els.forEach(({ el, s, baseX, baseY }) => {
+        const maxShift = 80;
+        const shiftX = tx * maxShift * s.depth;
+        const shiftY = ty * maxShift * s.depth * 0.6;
 
-            // Lines also stretch slightly on x-axis with mouse
-            if (s.type === 'line') {
-              const scaleX = 1 + Math.abs(tx) * 0.15 * s.depth * 4;
-              el.style.transform = `translate(${shiftX}px, ${shiftY}px) scaleX(${scaleX})`;
-            } else if (s.type === 'diamond') {
-              el.style.transform = `translate(${shiftX}px, ${shiftY}px) rotate(${45 + tx * 8 * s.depth}deg)`;
-            } else {
-              el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
-            }
-          });
-
-          requestAnimationFrame(parallaxLoop);
-        }
-        parallaxLoop();
-
-        // Touch support
-        window.addEventListener('touchmove', e => {
-          const t = e.touches[0];
-          mx = (t.clientX / window.innerWidth - 0.5) * 2;
-          my = (t.clientY / window.innerHeight - 0.5) * 2;
-        }, { passive: true });
-
-      })();
-
-      // ── Screen transition helper ──────────────────────────
-      const origShowScreen = window.showScreen;
-      window.showScreen = function (name) {
-        const current = document.querySelector('.screen.active');
-        const next = document.getElementById('screen-' + name);
-        if (!next) return;
-
-        if (current && current !== next) {
-          gsap.to(current, {
-            opacity: 0, y: -12, duration: 0.18, ease: 'power2.in',
-            onComplete: () => {
-              origShowScreen(name);
-              gsap.fromTo(next,
-                { opacity: 0, y: 16 },
-                { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out' }
-              );
-            }
-          });
+        // Lines also stretch slightly on x-axis with mouse
+        if(s.type === 'line') {
+          const scaleX = 1 + Math.abs(tx) * 0.15 * s.depth * 4;
+          el.style.transform = `translate(${shiftX}px, ${shiftY}px) scaleX(${scaleX})`;
+        } else if(s.type === 'diamond') {
+          el.style.transform = `translate(${shiftX}px, ${shiftY}px) rotate(${45 + tx * 8 * s.depth}deg)`;
         } else {
+          el.style.transform = `translate(${shiftX}px, ${shiftY}px)`;
+        }
+      });
+
+      requestAnimationFrame(parallaxLoop);
+    }
+    parallaxLoop();
+
+    // Touch support
+    window.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      mx = (t.clientX / window.innerWidth  - 0.5) * 2;
+      my = (t.clientY / window.innerHeight - 0.5) * 2;
+    }, { passive: true });
+
+  })();
+
+  // ── Screen transition helper ──────────────────────────
+  const origShowScreen = window.showScreen;
+  window.showScreen = function(name) {
+    const current = document.querySelector('.screen.active');
+    const next = document.getElementById('screen-' + name);
+    if(!next) return;
+
+    if(current && current !== next) {
+      gsap.to(current, {
+        opacity: 0, y: -12, duration: 0.18, ease: 'power2.in',
+        onComplete: () => {
           origShowScreen(name);
           gsap.fromTo(next,
             { opacity: 0, y: 16 },
             { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out' }
           );
         }
-      };
-
-      // ── Intro entrance animation ──────────────────────────
-      window.addEventListener('load', () => {
-        const intro = document.querySelector('#screen-intro .panel');
-        if (!intro) return;
-        const children = intro.children;
-        gsap.fromTo(children,
-          { opacity: 0, y: 24 },
-          {
-            opacity: 1, y: 0,
-            duration: 0.55,
-            stagger: 0.12,
-            ease: 'power3.out',
-            delay: 0.1
-          }
-        );
       });
-
-      // ── Pip used animation ────────────────────────────────
-      const origDoReplay = window.doReplay;
-      window.doReplay = function () {
-        const pip = document.getElementById('pip' + G.replays);
-        if (pip && G.replays < 3) {
-          gsap.to(pip, {
-            scale: 0.1, opacity: 0, duration: 0.3, ease: 'back.in(2)',
-            onComplete: () => origDoReplay()
-          });
-        } else {
-          origDoReplay();
-        }
-      };
-
-      // ── Submit button pulse on hover ──────────────────────
-      document.addEventListener('mouseover', e => {
-        if (e.target.id === 'btn-submit' && !e.target.disabled) {
-          gsap.to(e.target, { scale: 1.03, duration: 0.15, ease: 'power1.out' });
-        }
-      });
-      document.addEventListener('mouseout', e => {
-        if (e.target.id === 'btn-submit') {
-          gsap.to(e.target, { scale: 1, duration: 0.15, ease: 'power1.out' });
-        }
-      });
-
-      // ── Result score count-up ─────────────────────────────
-      const origSubmitGuess = window.submitGuess;
-      window.submitGuess = function () {
-        origSubmitGuess();
-        // After submit, animate the score number counting up
-        setTimeout(() => {
-          const el = document.getElementById('result-score');
-          if (!el) return;
-          const target = parseInt(el.textContent) || 0;
-          const obj = { val: 0 };
-          gsap.to(obj, {
-            val: target,
-            duration: 0.7,
-            ease: 'power2.out',
-            delay: 0.1,
-            onUpdate: () => { el.textContent = Math.round(obj.val); }
-          });
-          gsap.fromTo(el,
-            { scale: 0.7, opacity: 0 },
-            { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.4)', delay: 0.05 }
-          );
-        }, 50);
-      };
-
-      // ── Final score count-up ──────────────────────────────
-      const origFinishGame = window.finishGame;
-      window.finishGame = async function () {
-        await origFinishGame();
-        setTimeout(() => {
-          const el = document.getElementById('final-score');
-          if (!el) return;
-          const target = parseInt(el.textContent) || 0;
-          const obj = { val: 0 };
-          gsap.to(obj, {
-            val: target,
-            duration: 1.0,
-            ease: 'power3.out',
-            delay: 0.2,
-            onUpdate: () => { el.textContent = Math.round(obj.val); }
-          });
-          // Animate score tiles in
-          const tiles = document.querySelectorAll('.score-tile');
-          gsap.fromTo(tiles,
-            { scale: 0, opacity: 0, rotation: -10 },
-            {
-              scale: 1, opacity: 1, rotation: 0,
-              duration: 0.4, stagger: 0.07,
-              ease: 'back.out(1.6)', delay: 0.4
-            }
-          );
-        }, 80);
-      };
-
-      // ── Card hover lift ───────────────────────────────────
-      document.addEventListener('mouseover', e => {
-        const card = e.target.closest('.card');
-        if (card && !card.querySelector('input[type=range]')) {
-          gsap.to(card, { y: -2, duration: 0.2, ease: 'power1.out' });
-        }
-      });
-      document.addEventListener('mouseout', e => {
-        const card = e.target.closest('.card');
-        if (card) {
-          gsap.to(card, { y: 0, duration: 0.2, ease: 'power1.out' });
-        }
-      });
-
-      // ── Anim dot glow pulse when idle ─────────────────────
-      function pulseIdleDot() {
-        const dot = document.getElementById('anim-dot');
-        if (!dot || G.animating) { setTimeout(pulseIdleDot, 500); return; }
-        gsap.to(dot, {
-          boxShadow: '0 0 0 2px var(--blue), 0 0 22px rgba(38,84,248,0.9)',
-          duration: 0.8, ease: 'sine.inOut',
-          yoyo: true, repeat: 1,
-          onComplete: () => setTimeout(pulseIdleDot, 2000)
-        });
-      }
-      setTimeout(pulseIdleDot, 1500);
-
-
-      // ── Iframe height reporter (for Webflow embed) ────────
-      function reportHeight() {
-        const h = document.documentElement.scrollHeight;
-        window.parent.postMessage({ type: 'curvle-height', height: h }, '*');
-      }
-      window.addEventListener('load', reportHeight);
-      window.addEventListener('resize', reportHeight);
-      // Also fire after every screen change so Webflow resizes correctly
-      const _origShowScreen = window.showScreen;
-      // Hook into screen changes via MutationObserver on #app
-      new MutationObserver(reportHeight).observe(
-        document.getElementById('app'),
-        { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }
+    } else {
+      origShowScreen(name);
+      gsap.fromTo(next,
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out' }
       );
-    })();
-
-    // ════════════════════════════════════════════════════════
-    //  ADMIN TOOLS
-    // ════════════════════════════════════════════════════════
-    async function adminDelete() {
-      const name = document.getElementById('admin-name').value.trim();
-      const date = document.getElementById('admin-date').value.trim();
-      const msg = document.getElementById('admin-msg');
-
-      if (!name) { msg.style.color = '#f07070'; msg.textContent = 'Enter a name.'; return; }
-
-      let path = `scores?name=eq.${encodeURIComponent(name)}`;
-      if (date) path += `&date=eq.${encodeURIComponent(date)}`;
-
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': SUPABASE_ANON,
-          'Authorization': `Bearer ${SUPABASE_ANON}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (res.ok) {
-        msg.style.color = 'var(--teal)';
-        msg.textContent = `Deleted scores for "${name}"${date ? ' on ' + date : ''}.`;
-        document.getElementById('admin-name').value = '';
-        document.getElementById('admin-date').value = '';
-        loadAdminScores();
-      } else {
-        msg.style.color = '#f07070';
-        msg.textContent = `Error: ${res.status} — could not delete.`;
-      }
     }
+  };
 
-    async function loadAdminScores() {
-      const list = document.getElementById('admin-lb-list');
-      if (!list) return;
-      list.textContent = 'Loading...';
-      const scores = await loadScores();
-      if (!scores || scores.length === 0) {
-        list.textContent = 'No scores.';
-        return;
+  // ── Intro entrance animation ──────────────────────────
+  window.addEventListener('load', () => {
+    const intro = document.querySelector('#screen-intro .panel');
+    if(!intro) return;
+    const children = intro.children;
+    gsap.fromTo(children,
+      { opacity: 0, y: 24 },
+      { opacity: 1, y: 0,
+        duration: 0.55,
+        stagger: 0.12,
+        ease: 'power3.out',
+        delay: 0.1
       }
-      // Store scores on window so quickDelete can reference by index safely
-      window._adminScores = scores;
-      list.innerHTML = scores.map((s, i) =>
-        `<div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(164,194,254,0.06);">
-      <span style="color:var(--txt3);min-width:18px;">${i + 1}</span>
+    );
+  });
+
+  // ── Pip used animation ────────────────────────────────
+  const origDoReplay = window.doReplay;
+  window.doReplay = function() {
+    const pip = document.getElementById('pip' + G.replays);
+    if(pip && G.replays < 3) {
+      gsap.to(pip, {
+        scale: 0.1, opacity: 0, duration: 0.3, ease: 'back.in(2)',
+        onComplete: () => origDoReplay()
+      });
+    } else {
+      origDoReplay();
+    }
+  };
+
+  // ── Submit button pulse on hover ──────────────────────
+  document.addEventListener('mouseover', e => {
+    if(e.target.id === 'btn-submit' && !e.target.disabled) {
+      gsap.to(e.target, { scale: 1.03, duration: 0.15, ease: 'power1.out' });
+    }
+  });
+  document.addEventListener('mouseout', e => {
+    if(e.target.id === 'btn-submit') {
+      gsap.to(e.target, { scale: 1, duration: 0.15, ease: 'power1.out' });
+    }
+  });
+
+  // ── Result score count-up ─────────────────────────────
+  const origSubmitGuess = window.submitGuess;
+  window.submitGuess = function() {
+    origSubmitGuess();
+    // After submit, animate the score number counting up
+    setTimeout(() => {
+      const el = document.getElementById('result-score');
+      if(!el) return;
+      const target = parseInt(el.textContent) || 0;
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 0.7,
+        ease: 'power2.out',
+        delay: 0.1,
+        onUpdate: () => { el.textContent = Math.round(obj.val); }
+      });
+      gsap.fromTo(el,
+        { scale: 0.7, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(1.4)', delay: 0.05 }
+      );
+    }, 50);
+  };
+
+  // ── Final score count-up ──────────────────────────────
+  const origFinishGame = window.finishGame;
+  window.finishGame = async function() {
+    await origFinishGame();
+    setTimeout(() => {
+      const el = document.getElementById('final-score');
+      if(!el) return;
+      const target = parseInt(el.textContent) || 0;
+      const obj = { val: 0 };
+      gsap.to(obj, {
+        val: target,
+        duration: 1.0,
+        ease: 'power3.out',
+        delay: 0.2,
+        onUpdate: () => { el.textContent = Math.round(obj.val); }
+      });
+      // Animate score tiles in
+      const tiles = document.querySelectorAll('.score-tile');
+      gsap.fromTo(tiles,
+        { scale: 0, opacity: 0, rotation: -10 },
+        { scale: 1, opacity: 1, rotation: 0,
+          duration: 0.4, stagger: 0.07,
+          ease: 'back.out(1.6)', delay: 0.4 }
+      );
+    }, 80);
+  };
+
+  // ── Card hover lift ───────────────────────────────────
+  document.addEventListener('mouseover', e => {
+    const card = e.target.closest('.card');
+    if(card && !card.querySelector('input[type=range]')) {
+      gsap.to(card, { y: -2, duration: 0.2, ease: 'power1.out' });
+    }
+  });
+  document.addEventListener('mouseout', e => {
+    const card = e.target.closest('.card');
+    if(card) {
+      gsap.to(card, { y: 0, duration: 0.2, ease: 'power1.out' });
+    }
+  });
+
+  // ── Anim dot glow pulse when idle ─────────────────────
+  function pulseIdleDot() {
+    const dot = document.getElementById('anim-dot');
+    if(!dot || G.animating) { setTimeout(pulseIdleDot, 500); return; }
+    gsap.to(dot, {
+      boxShadow: '0 0 0 2px var(--blue), 0 0 22px rgba(38,84,248,0.9)',
+      duration: 0.8, ease: 'sine.inOut',
+      yoyo: true, repeat: 1,
+      onComplete: () => setTimeout(pulseIdleDot, 2000)
+    });
+  }
+  setTimeout(pulseIdleDot, 1500);
+
+
+  // ── Iframe height reporter (for Webflow embed) ────────
+  function reportHeight() {
+    const h = document.documentElement.scrollHeight;
+    window.parent.postMessage({ type: 'curvle-height', height: h }, '*');
+  }
+  window.addEventListener('load', reportHeight);
+  window.addEventListener('resize', reportHeight);
+  // Also fire after every screen change so Webflow resizes correctly
+  const _origShowScreen = window.showScreen;
+  // Hook into screen changes via MutationObserver on #app
+  new MutationObserver(reportHeight).observe(
+    document.getElementById('app'),
+    { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] }
+  );
+})();
+
+// ════════════════════════════════════════════════════════
+//  ADMIN TOOLS
+// ════════════════════════════════════════════════════════
+async function adminDelete() {
+  const name = document.getElementById('admin-name').value.trim();
+  const date = document.getElementById('admin-date').value.trim();
+  const msg  = document.getElementById('admin-msg');
+
+  if(!name) { msg.style.color='#f07070'; msg.textContent='Enter a name.'; return; }
+
+  let path = `scores?name=eq.${encodeURIComponent(name)}`;
+  if(date) path += `&date=eq.${encodeURIComponent(date)}`;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_ANON,
+      'Authorization': `Bearer ${SUPABASE_ANON}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if(res.ok) {
+    msg.style.color = 'var(--teal)';
+    msg.textContent = `Deleted scores for "${name}"${date ? ' on ' + date : ''}.`;
+    document.getElementById('admin-name').value = '';
+    document.getElementById('admin-date').value = '';
+    loadAdminScores();
+  } else {
+    msg.style.color = '#f07070';
+    msg.textContent = `Error: ${res.status} — could not delete.`;
+  }
+}
+
+async function loadAdminScores() {
+  const list = document.getElementById('admin-lb-list');
+  if(!list) return;
+  list.textContent = 'Loading...';
+  const scores = await loadScores();
+  if(!scores || scores.length === 0) {
+    list.textContent = 'No scores.';
+    return;
+  }
+  // Store scores on window so quickDelete can reference by index safely
+  window._adminScores = scores;
+  list.innerHTML = scores.map((s, i) =>
+    `<div style="display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(164,194,254,0.06);">
+      <span style="color:var(--txt3);min-width:18px;">${i+1}</span>
       <span style="flex:1;color:var(--txt);">${s.name}</span>
       <span style="color:var(--blue-light);font-family:'Space Mono',monospace;">${s.score}</span>
       <span style="color:var(--txt3);font-size:10px;">${s.date}</span>
@@ -2007,29 +1817,28 @@
         ×
       </button>
     </div>`
-      ).join('');
-    }
+  ).join('');
+}
 
-    function quickDelete(idx) {
-      const s = window._adminScores && window._adminScores[idx];
-      if (!s) return;
-      document.getElementById('admin-name').value = s.name;
-      document.getElementById('admin-date').value = s.date;
-      adminDelete();
-    }
+function quickDelete(idx) {
+  const s = window._adminScores && window._adminScores[idx];
+  if(!s) return;
+  document.getElementById('admin-name').value = s.name;
+  document.getElementById('admin-date').value = s.date;
+  adminDelete();
+}
 
-    // Check for ?admin=1 on init — open admin panel if password provided
-    (function checkAdminParam() {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('admin') === ADMIN_PASSWORD) {
-        // Show admin screen after init
-        setTimeout(() => {
-          showScreen('admin');
-          loadAdminScores();
-        }, 100);
-      }
-    })();
-  </script>
+// Check for ?admin=1 on init — open admin panel if password provided
+(function checkAdminParam() {
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('admin') === ADMIN_PASSWORD) {
+    // Show admin screen after init
+    setTimeout(() => {
+      showScreen('admin');
+      loadAdminScores();
+    }, 100);
+  }
+})();
+</script>
 </body>
-
 </html>
