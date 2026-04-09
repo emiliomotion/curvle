@@ -260,10 +260,12 @@
   }
 
   /* ── Curve SVG editor ── */
-  .curve-wrap { position: relative; touch-action: none; cursor: crosshair; }
-  .curve-wrap svg { width: 100%; display: block; }
+  .curve-wrap { position: relative; touch-action: none; cursor: crosshair; user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
+  .curve-wrap svg { width: 100%; display: block; touch-action: none; }
   .handle { cursor: grab; }
   .handle:active { cursor: grabbing; }
+  /* Prevent scroll while interacting with the bezier editor on mobile */
+  .bez-active { overflow: hidden; touch-action: none; }
 
   /* ── Slider row ── */
   .slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
@@ -864,12 +866,16 @@ let bezDragging=null;
 let bezH1=[0.33,0.33], bezH2=[0.67,0.67];
 
 function buildBezierEditor(container) {
-  // touch-action:none on the wrap prevents browser scroll hijacking during drag
-  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;"></svg></div>`;
+  container.innerHTML = `<div class="curve-wrap" id="bez-wrap" style="touch-action:none;user-select:none;"><svg id="bez-svg" viewBox="0 0 ${BEZ_SIZE} ${BEZ_SIZE}" style="touch-action:none;user-select:none;-webkit-user-select:none;"></svg></div>`;
   drawBezierSvg();
   const svg = document.getElementById('bez-svg');
   svg.addEventListener('mousedown', bezDown);
-  svg.addEventListener('touchstart', bezTouchDown, {passive:false});
+  // Attach touchstart, touchmove, touchend all on the SVG element itself
+  // so the browser locks the entire gesture as non-scrollable from the first frame
+  svg.addEventListener('touchstart',  bezTouchDown, {passive:false});
+  svg.addEventListener('touchmove',   bezTouchMove, {passive:false});
+  svg.addEventListener('touchend',    bezTouchEnd,  {passive:true});
+  svg.addEventListener('touchcancel', bezTouchEnd,  {passive:true});
 }
 
 function drawBezierSvg() {
@@ -929,11 +935,25 @@ function bezDown(e){
   if(bezDragging) e.preventDefault();
 }
 function bezTouchDown(e){
+  e.preventDefault();
+  e.stopPropagation();
   const[sx,sy]=getBezSvgXY(e);
   if(bezHitTest(sx,sy,bezH1)) bezDragging='h1';
   else if(bezHitTest(sx,sy,bezH2)) bezDragging='h2';
-  // Always prevent default on touchstart inside the editor to stop scroll stealing
+  if(bezDragging) document.body.classList.add('bez-active');
+}
+function bezTouchMove(e) {
+  if(!bezDragging) return;
   e.preventDefault();
+  e.stopPropagation();
+  const[sx,sy]=getBezSvgXY(e);
+  if(bezDragging==='h1') bezH1=svgToH(sx,sy);
+  else bezH2=svgToH(sx,sy);
+  drawBezierSvg();
+}
+function bezTouchEnd(e) {
+  bezDragging=null;
+  document.body.classList.remove('bez-active');
 }
 window.addEventListener('mousemove',e=>{
   if(!bezDragging) return;
@@ -942,16 +962,7 @@ window.addEventListener('mousemove',e=>{
   else bezH2=svgToH(sx,sy);
   drawBezierSvg();
 });
-window.addEventListener('touchmove',e=>{
-  if(!bezDragging) return;
-  e.preventDefault();
-  const[sx,sy]=getBezSvgXY(e);
-  if(bezDragging==='h1') bezH1=svgToH(sx,sy);
-  else bezH2=svgToH(sx,sy);
-  drawBezierSvg();
-},{passive:false});
 window.addEventListener('mouseup',()=>{ bezDragging=null; });
-window.addEventListener('touchend',()=>{ bezDragging=null; });
 
 // ════════════════════════════════════════════════════════
 //  SPRING / STEP EDITORS
